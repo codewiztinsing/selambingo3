@@ -6,7 +6,7 @@ from telegram.ext import (
     ConversationHandler,
     MessageHandler,
     CallbackContext,
-    filters,
+    filters
 )
 import logging
 from telegram import (
@@ -88,7 +88,7 @@ async def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
-# Set up the ConversationHandler
+
 conv_handler = ConversationHandler(
     entry_points=[CommandHandler("register", start)],
     states={
