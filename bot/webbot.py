@@ -32,119 +32,55 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-# option command
-async def start(update, context):
-    chat_id = update.effective_chat.id
+
+
+
+
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackContext
+
+
+# Define a function that will be called when the /start command is issued
+async def start(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [telegram.InlineKeyboardButton("Play 10", callback_data="Play10")],
-        [telegram.InlineKeyboardButton("Play 20", callback_data="Play20")],
-        [telegram.InlineKeyboardButton("Play 40", callback_data="Play40")],
-        [telegram.InlineKeyboardButton("Play 50", callback_data='"Play50')],
-        [telegram.InlineKeyboardButton("Play 60", callback_data="Play60")],
+        [InlineKeyboardButton("Check Balance", callback_data='check_balance'),
+         InlineKeyboardButton("Deposit", callback_data='deposit')],
+        [InlineKeyboardButton("Contact Support", callback_data='contact_support'),
+         InlineKeyboardButton("Instruction", callback_data='instruction')],
+        [InlineKeyboardButton("Play10", callback_data='play10'),
+         InlineKeyboardButton("Play20", callback_data='play20')],
+        [InlineKeyboardButton("Play50", callback_data='play50'),
+         InlineKeyboardButton("Play100", callback_data='play100')],
+        [InlineKeyboardButton("Play Demo", callback_data='play_demo')]
     ]
-    reply_markup = telegram.InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
 
-
-
-async def play_demo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with a button that opens a the web app."""
-    await update.message.reply_text(
-        "play demo",
-        reply_markup=ReplyKeyboardMarkup.from_button(
-            KeyboardButton(
-                text="start",
-                web_app=WebAppInfo(url="https://selambingo.onrender.com/"),
-            )
-        ),
-    )
-async def button_handler(update, context):
+# Define a callback function for button presses
+async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
-    answer = await query.answer()
-    username = query.message.from_user.username
-    id =  query.message.from_user.id
-    print("user=",id)
-        # Do something for Play 10
-    await query.message.reply_text(
-        "Please press the button below to start.",
-        reply_markup=ReplyKeyboardMarkup.from_button(
-            KeyboardButton(
-                text="Start!",
-                web_app=WebAppInfo(url=f"https://selambingo.onrender.com/?playerId={id}&name={username}&betAmount={query.data}"),
-            )
-        ),
-    )
-  
-
-# Define a `/play` command handler.
-async def play(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with a button that opens a the web app."""
-    chat_id = update.effective_chat.id
-    keyboard = [
-        [telegram.InlineKeyboardButton("Play 10", callback_data="10")],
-        [telegram.InlineKeyboardButton("Play 20", callback_data="20")],
-        [telegram.InlineKeyboardButton("Play 40", callback_data="40")],
-        [telegram.InlineKeyboardButton("Play 50", callback_data='50')],
-        [telegram.InlineKeyboardButton("Play 60", callback_data="60")],
-    ]
-    reply_markup = telegram.InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
-
-
-# Define a `/withdraw` command handler.
-async def cash_withdraw(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with a button that opens a the web app."""
-    await update.message.reply_text("cash with draw will be handled here")
+    query.answer()
+    print("query answer = ",query)
+    
+    # Handle different button presses
+    if query.data == 'check_balance':
+        query.edit_message_text(text="Your balance is $100.")
+    elif query.data == 'deposit':
+        query.edit_message_text(text="Please follow the deposit instructions.")
+    elif query.data == 'contact_support':
+        query.edit_message_text(text="Contact support at support@example.com.")
+    elif query.data == 'instruction':
+        query.edit_message_text(text="Here are the instructions for playing.")
+    elif query.data in ['play10', 'play20', 'play50', 'play100', 'play_demo']:
+        data = query.data
+       
+        query.edit_message_text(text=f"You selected {query.data}.")
 
 
 
-async def deposit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with a button that opens a the web app."""
-    await update.message.reply_text("payment will be handled here")
-
-
-
-async def check_account_balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message with a button that opens a the web app."""
-    username = update.message.from_user.username
-    print("user data = ",username)
-    balance_data = requests.get(f"http://127.0.0.1:8000/balance?username= {username}")
-    body  = json.loads(balance_data.text)
-    print("balance = ",body['balance'])
-    await update.message.reply_text(f"amount in your wallet = {body['balance']}")
-
-
-
-# Handle incoming WebAppData
-async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Print the received data and remove the button."""
-    # Here we use `json.loads`, since the WebApp sends the data JSON serialized string
-    # (see webappbot.html)
-    data = json.loads(update.effective_message.web_app_data.data)
-    await update.message.reply_html(
-        text=(
-            f"You selected the color with the HEX value <code>{data['hex']}</code>. The "
-            f"corresponding RGB value is <code>{tuple(data['rgb'].values())}</code>."
-        ),
-        reply_markup=ReplyKeyboardRemove(),
-    )
-
-
-async def start(update, context):
-    chat_id = update.effective_chat.id
-    buttons = [
-        [
-        KeyboardButton("/register"),
-        KeyboardButton("/balance"),
-        KeyboardButton("/withdraw"),
-        KeyboardButton("/play")
-      
-        ]
-        ]
-    reply_markup = ReplyKeyboardMarkup(buttons, one_time_keyboard=True)
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                            text="Please select an option:",
-                            reply_markup=reply_markup)
 
 
 
@@ -157,14 +93,7 @@ def main() -> None:
         .build()
     )
     application.add_handler(CommandHandler('start', start))
-    application.add_handler(CallbackQueryHandler(button_handler))
-    application.add_handler(CommandHandler("play", play))
-    application.add_handler(CommandHandler("balance", check_account_balance))
-    application.add_handler(CommandHandler("deposit", deposit))
-    application.add_handler(CommandHandler("withdraw", cash_withdraw))
-    application.add_handler(CommandHandler("demo",play_demo))
-    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
-    application.add_handler(conv_handler)
+    application.add_handler(CallbackQueryHandler(button))
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

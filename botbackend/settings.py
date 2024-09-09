@@ -14,7 +14,7 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["selambingo.pythonanywhere.com"]
+ALLOWED_HOSTS = ["selambingo.pythonanywhere.com","127.0.0.1"]
 
 
 # Application definition
@@ -28,8 +28,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "accounts",
     "bot",
+    "payments",
+    
     'rest_framework',
     'djoser',
+    'compressor',  # new
+
 ]
 
 MIDDLEWARE = [
@@ -47,7 +51,8 @@ ROOT_URLCONF = "botbackend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'templates'], # new
+
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -119,7 +124,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+COMPRESS_ROOT = BASE_DIR / 'static'
+COMPRESS_ENABLED = True
+STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
