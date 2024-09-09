@@ -22,6 +22,9 @@ from telegram.ext import (
 from telegram.ext import ConversationHandler, CommandHandler, MessageHandler
 from .register import conv_handler
 import json
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackContext
+
 
 # Enable logging
 logging.basicConfig(
@@ -37,8 +40,9 @@ logger = logging.getLogger(__name__)
 
 
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext
+
+
+
 
 
 # Define a function that will be called when the /start command is issued
