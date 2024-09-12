@@ -56,6 +56,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     try:
         if query.data == 'check_balance':
+            print("user data =",query.from_user.username)
             await query.edit_message_text(text="Your balance is $100.")
         elif query.data == 'deposit':
             keyboard = [
@@ -75,6 +76,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     amount = update.message.text
+    query = update.callback_query
+    first_name =  update.message.from_user.first_name
+    username = update.message.from_user.username
+
     logger.info(f"Received deposit amount: {amount}")
 
     try:
@@ -84,8 +89,8 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             email="aleludago@gmail.com",
             amount=amount,
             currency="ETB",
-            first_name="Tinsae",
-            last_name="Alako",
+            first_name=first_name,
+            last_name=username,
             tx_ref=f"fghj76{random.randint(1, 1000000000)}",
             callback_url="https://selambingo.onrender.com/"
         )
@@ -99,7 +104,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
             ),
         )
-        await update.message.reply_text("Please follow the deposit instructions.")
+     
         return ConversationHandler.END  # End the conversation
     except ValueError:
         await update.message.reply_text("Please enter a valid number.")
