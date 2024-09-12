@@ -40,10 +40,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
          InlineKeyboardButton("Deposit", callback_data='deposit')],
         [InlineKeyboardButton("Contact Support", callback_data='contact_support'),
          InlineKeyboardButton("Instruction", callback_data='instruction')],
-        [InlineKeyboardButton("Play10", callback_data='play10'),
-         InlineKeyboardButton("Play20", callback_data='play20')],
-        [InlineKeyboardButton("Play50", callback_data='play50'),
-         InlineKeyboardButton("Play100", callback_data='play100')],
+        [InlineKeyboardButton("Play10", callback_data='10'),
+         InlineKeyboardButton("Play20", callback_data='20')],
+        [InlineKeyboardButton("Play50", callback_data='50'),
+         InlineKeyboardButton("Play100", callback_data='100')],
         [InlineKeyboardButton("Play Demo", callback_data='play_demo')]
     ]
     
@@ -56,8 +56,23 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     try:
         if query.data == 'check_balance':
-            print("user data =",query.from_user.username)
             await query.edit_message_text(text="Your balance is $100.")
+
+
+        elif query.data in ['10','20' '50','100']:
+            print("data=",query.data)
+            print("username=",query.from_user.username)
+            await query.message.reply_text(
+                    "Open web page",
+                    reply_markup=ReplyKeyboardMarkup.from_button(
+                        KeyboardButton(
+                            text="Open game!",
+                            web_app=WebAppInfo(url=f"https://selambingo.onrender.com/?playerId=1&name={query.from_user.username}&betAmount={query.data}"),
+                        )
+                    ),
+                )
+        
+
         elif query.data == 'deposit':
             keyboard = [
                 [InlineKeyboardButton("Chapa", callback_data='chapa'),
