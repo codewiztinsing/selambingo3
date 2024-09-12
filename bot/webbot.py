@@ -1,14 +1,11 @@
 import json
 import logging
-import telegram
-import requests
 import random
 from chapa import AsyncChapa
 from decouple import config
 from telegram import (
     KeyboardButton,
     ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
     Update,
     WebAppInfo,
     InlineKeyboardMarkup,
@@ -21,29 +18,23 @@ from telegram.ext import (
     MessageHandler,
     filters,
     CallbackQueryHandler,
+    ConversationHandler,
 )
-from telegram.ext import ConversationHandler, CommandHandler, MessageHandler
-from .register import conv_handler
-import json
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext
-
-
 
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-# set higher logging level for httpx to avoid all GET and POST requests being logged
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
+BACK_URL = config('BACK_URL')
 
+# Define conversation states
+DEPOSIT_AMOUNT = range(1)
 
-BACK_URL =  config('BACK_URL')
-# Define a function that will be called when the /start command is issued
-async def start(update: Update, context: CallbackContext) -> None:
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("Check Balance", callback_data='check_balance'),
          InlineKeyboardButton("Deposit", callback_data='deposit')],
@@ -57,62 +48,83 @@ async def start(update: Update, context: CallbackContext) -> None:
     ]
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
     await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
 
-async def button(update: Update, context: CallbackContext) -> None:
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    await query.answer()  # Await the answer call
+    await query.answer()
 
     try:
         if query.data == 'check_balance':
             await query.edit_message_text(text="Your balance is $100.")
         elif query.data == 'deposit':
-            chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
-            response = await chapa.initialize(
-                email="aleludago@gmail.com",
-                amount=10,
-                currency="ETB",
-                first_name="Tinsae",
-                last_name="Alako",
-                tx_ref=f"fghj76{random.randint(1,1000000000)}",
-                callback_url="https://selambingo.onrender.com/"
-            )
-            checkout_url = response['data']['checkout_url']
-            print("checkout url = ", checkout_url)
-            await query.message.reply_text(
-                "open web page",
-                reply_markup=ReplyKeyboardMarkup.from_button(
-                    KeyboardButton(
-                        text="open chapa!",
-                        web_app=WebAppInfo(url=checkout_url),
-                    )
-                ),
-            )
-            await query.edit_message_text(text="Please follow the deposit instructions.")
-        elif query.data == 'contact_support':
-            await query.edit_message_text(text="Contact support at support@example.com.")
-        elif query.data == 'instruction':
-            await query.edit_message_text(text="Here are the instructions for playing.")
-        elif query.data in ['play10', 'play20', 'play50', 'play100', 'play_demo']:
-            await query.edit_message_text(text=f"You selected {query.data}.")
+            keyboard = [
+                [InlineKeyboardButton("Chapa", callback_data='chapa'),
+                 InlineKeyboardButton("Manual", callback_data='manual')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
+        elif query.data == 'chapa':
+            await query.edit_message_text(text="Please enter the amount you want to deposit:")
+            return DEPOSIT_AMOUNT  # Proceed to the next state
+        else:
+            await query.edit_message_text(text="Unknown option selected.")
     except Exception as e:
         logger.error(f"Error handling query: {query.data} - {e}")
         await query.edit_message_text(text="An error occurred. Please try again.")
 
+async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    amount = update.message.text
+    logger.info(f"Received deposit amount: {amount}")
+
+    try:
+        amount = float(amount)  # Convert to float
+        chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
+        response = await chapa.initialize(
+            email="aleludago@gmail.com",
+            amount=amount,
+            currency="ETB",
+            first_name="Tinsae",
+            last_name="Alako",
+            tx_ref=f"fghj76{random.randint(1, 1000000000)}",
+            callback_url="https://selambingo.onrender.com/"
+        )
+        checkout_url = response['data']['checkout_url']
+        await update.message.reply_text(
+            "Open web page",
+            reply_markup=ReplyKeyboardMarkup.from_button(
+                KeyboardButton(
+                    text="Open Chapa!",
+                    web_app=WebAppInfo(url=checkout_url),
+                )
+            ),
+        )
+        await update.message.reply_text("Please follow the deposit instructions.")
+        return ConversationHandler.END  # End the conversation
+    except ValueError:
+        await update.message.reply_text("Please enter a valid number.")
+    except Exception as e:
+        logger.error(f"Error processing deposit: {e}")
+        await update.message.reply_text("An error occurred. Please try again.")
 
 def main() -> None:
-    """Start the bot."""
-    # Create the Application and pass it your bot's token.
     application = (
         Application.builder()
         .token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww")
         .build()
     )
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CallbackQueryHandler(button))
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
+    conv_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(button)],
+        states={
+            DEPOSIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, deposit_amount)],
+        },
+        fallbacks=[],
+    )
+
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(conv_handler)
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
