@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "accounts",
     "bot",
     "payments",
+    'django_chapa',
     
     'rest_framework',
     'djoser',
@@ -131,3 +132,13 @@ STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
+
+
+CHAPA_SECRET = "CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk"
+
+CHAPA_API_URL = 'https://api.chapa.co/v1/hosted/pay'
+
+CHAPA_API_VERSION = 'v1'
+
+CHAPA_TRANSACTION_MODEL = "payments.ChapaTransaction"

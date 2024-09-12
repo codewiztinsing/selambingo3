@@ -12,4 +12,7 @@ class ChapaTransaction(models.Model):
     is_paid = models.BooleanField(default=False)
     reference_no = models.CharField(max_length=100, **NULL)
     tx_ref = models.CharField(max_length=500)
+
+    def __str__(self) -> str:
+        return f"{self.user}" + f"{self.amount}"
  

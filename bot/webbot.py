@@ -2,6 +2,9 @@ import json
 import logging
 import telegram
 import requests
+import random
+from chapa import AsyncChapa
+from decouple import config
 from telegram import (
     KeyboardButton,
     ReplyKeyboardMarkup,
@@ -26,6 +29,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -37,14 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 
-
-
-
-
-
-
-
-
+BACK_URL =  config('BACK_URL')
 # Define a function that will be called when the /start command is issued
 async def start(update: Update, context: CallbackContext) -> None:
     keyboard = [
@@ -63,29 +60,45 @@ async def start(update: Update, context: CallbackContext) -> None:
     
     await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
 
-# Define a callback function for button presses
 async def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
-    query.answer()
-    print("query answer = ",query)
-    
-    # Handle different button presses
-    if query.data == 'check_balance':
-        query.edit_message_text(text="Your balance is $100.")
-    elif query.data == 'deposit':
-        query.edit_message_text(text="Please follow the deposit instructions.")
-    elif query.data == 'contact_support':
-        query.edit_message_text(text="Contact support at support@example.com.")
-    elif query.data == 'instruction':
-        query.edit_message_text(text="Here are the instructions for playing.")
-    elif query.data in ['play10', 'play20', 'play50', 'play100', 'play_demo']:
-        data = query.data
-       
-        query.edit_message_text(text=f"You selected {query.data}.")
+    await query.answer()  # Await the answer call
 
-
-
-
+    try:
+        if query.data == 'check_balance':
+            await query.edit_message_text(text="Your balance is $100.")
+        elif query.data == 'deposit':
+            chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
+            response = await chapa.initialize(
+                email="aleludago@gmail.com",
+                amount=10,
+                currency="ETB",
+                first_name="Tinsae",
+                last_name="Alako",
+                tx_ref=f"fghj76{random.randint(1,1000000000)}",
+                callback_url="https://selambingo.onrender.com/"
+            )
+            checkout_url = response['data']['checkout_url']
+            print("checkout url = ", checkout_url)
+            await query.message.reply_text(
+                "open web page",
+                reply_markup=ReplyKeyboardMarkup.from_button(
+                    KeyboardButton(
+                        text="open chapa!",
+                        web_app=WebAppInfo(url=checkout_url),
+                    )
+                ),
+            )
+            await query.edit_message_text(text="Please follow the deposit instructions.")
+        elif query.data == 'contact_support':
+            await query.edit_message_text(text="Contact support at support@example.com.")
+        elif query.data == 'instruction':
+            await query.edit_message_text(text="Here are the instructions for playing.")
+        elif query.data in ['play10', 'play20', 'play50', 'play100', 'play_demo']:
+            await query.edit_message_text(text=f"You selected {query.data}.")
+    except Exception as e:
+        logger.error(f"Error handling query: {query.data} - {e}")
+        await query.edit_message_text(text="An error occurred. Please try again.")
 
 
 def main() -> None:
