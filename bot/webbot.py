@@ -20,6 +20,7 @@ from telegram.ext import (
     CallbackQueryHandler,
     ConversationHandler,
 )
+from datetime import datetime
 
 # Enable logging
 logging.basicConfig(
@@ -57,8 +58,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if query.data == 'check_balance':
             await query.edit_message_text(text="Your balance is $100.")
-
-
         elif query.data in ['10','20' '50','100']:
             print("data=",query.data)
             print("username=",query.from_user.username)
@@ -100,25 +99,29 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     try:
         amount = float(amount)  # Convert to float
         chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
+        print("date time = ",datetime.now())
+        reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         response = await chapa.initialize(
-            email="aleludago@gmail.com",
+            email=f"{first_name}@gmail.com",
             amount=amount,
             currency="ETB",
             first_name=first_name,
             last_name=username,
-            tx_ref=f"fghj76{random.randint(1, 1000000000)}",
+            tx_ref=reference_no,
             callback_url="https://selambingo.onrender.com/"
         )
+        print("response = ",response)
         checkout_url = response['data']['checkout_url']
-        await update.message.reply_text(
-            "Open web page",
-            reply_markup=ReplyKeyboardMarkup.from_button(
-                KeyboardButton(
-                    text="Open Chapa!",
-                    web_app=WebAppInfo(url=checkout_url),
-                )
-            ),
-        )
+        if checkout_url:
+            await update.message.reply_text(
+                "Open web page",
+                reply_markup=ReplyKeyboardMarkup.from_button(
+                    KeyboardButton(
+                        text="Open Chapa!",
+                        web_app=WebAppInfo(url=checkout_url),
+                    )
+                ),
+            )
      
         return ConversationHandler.END  # End the conversation
     except ValueError:
