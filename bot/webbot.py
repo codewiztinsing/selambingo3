@@ -157,7 +157,6 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         amount = float(amount)  # Convert to float
         chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
-        print("date time = ",datetime.now())
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         response = await chapa.initialize(
             email=f"{first_name}@gmail.com",
