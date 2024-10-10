@@ -62,17 +62,15 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
         if query.data == "register":
+           
             keyboard = [
-                [InlineKeyboardButton("Chapa", callback_data='chapa'),
-                 InlineKeyboardButton("Manual", callback_data='manual')
-                 ]
+                [InlineKeyboardButton("Share your Phone", callback_data='begin_register')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
+            await query.edit_message_text("Telegram profile will be used to register you in bot", reply_markup=reply_markup)
 
         elif query.data in ['10','20' '50','100']:
-            print("data=",query.data)
-            print("username=",query.from_user.username)
+
             await query.message.reply_text(
                     "Open web page",
                     reply_markup=ReplyKeyboardMarkup.from_button(
@@ -94,6 +92,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'chapa':
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
+
+        elif query.data == 'begin_register':
+            user_profile = query.from_user
+            print("user profile = ",user_profile)
+            await query.message.reply_text("Register completed")
+
+           
         else:
             await query.edit_message_text(text="Unknown option selected.")
     except Exception as e:
@@ -111,7 +116,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     try:
         amount = float(amount)  # Convert to float
         chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
-        print("date time = ",datetime.now())
+ 
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         response = await chapa.initialize(
             email=f"{first_name}@gmail.com",
@@ -125,7 +130,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
      
         checkout_url = response['data']['checkout_url']
-        print("checkoout url = ",checkout_url)
+        # print("checkoout url = ",checkout_url)
         if checkout_url:
             await update.message.reply_text(
                 "Open web page",
@@ -170,7 +175,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
      
         checkout_url = response['data']['checkout_url']
-        print("checkoout url = ",checkout_url)
+        # print("checkoout url = ",checkout_url)
         if checkout_url:
             await update.message.reply_text(
                 "Open web page",
