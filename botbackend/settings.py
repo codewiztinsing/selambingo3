@@ -1,4 +1,4 @@
-from bot.webbot import main
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -16,7 +16,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["selambingo.pythonanywhere.com","127.0.0.1","188.245.75.205"]
 
-main()
+
 # Application definition
 # main()
 INSTALLED_APPS = [
@@ -142,3 +142,7 @@ CHAPA_API_URL = 'https://api.chapa.co/v1/hosted/pay'
 CHAPA_API_VERSION = 'v1'
 
 CHAPA_TRANSACTION_MODEL = "payments.ChapaTransaction"
+
+
+from bot.webbot import main
+main()
