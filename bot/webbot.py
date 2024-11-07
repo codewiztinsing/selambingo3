@@ -76,7 +76,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                     reply_markup=ReplyKeyboardMarkup.from_button(
                         KeyboardButton(
                             text="Open game!",
-                            web_app=WebAppInfo(url=f"https://selambingo.onrender.com/?playerId={query.from_user.id}&name={query.from_user.username}&betAmount={query.data}&wallentAmount={1000}"),
+                            web_app=WebAppInfo(url=f"https://selambingo.onrender.com/?playerId={query.from_user.id}&name={query.from_user.username}&betAmount={query.data}&walletAmount={1000}"),
                         )
                     ),
                 )
