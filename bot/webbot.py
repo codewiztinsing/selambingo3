@@ -38,8 +38,8 @@ DEPOSIT_AMOUNT = range(1)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("Register", callback_data='register')], 
-        [InlineKeyboardButton("Check Balance", callback_data='check_balance')],
-        #  InlineKeyboardButton("Deposit", callback_data='deposit')],
+        [InlineKeyboardButton("Check Balance", callback_data='check_balance'),
+         InlineKeyboardButton("Deposit", callback_data='deposit')],
         [InlineKeyboardButton("Contact Support", callback_data='contact_support'),
          InlineKeyboardButton("Instruction", callback_data='instruction')],
         [InlineKeyboardButton("Play10", callback_data='10'),
