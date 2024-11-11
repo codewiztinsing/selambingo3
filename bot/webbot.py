@@ -11,6 +11,8 @@ from telegram import (
     InlineKeyboardMarkup,
     InlineKeyboardButton,
 )
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -21,6 +23,7 @@ from telegram.ext import (
     ConversationHandler,
 )
 from datetime import datetime
+from telegram import BotCommand
 
 # Enable logging
 logging.basicConfig(
@@ -194,14 +197,78 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("An error occurred. Please try again.")
 
 
+all_public_commands_descriptions = [
+    BotCommand(
+        "start", 
+        "start the bot"
+    ),
+
+    BotCommand(
+        "play", 
+        "start playing"
+        ),
+    BotCommand(
+        "demo", 
+        "start playing demo game"
+        ),
+    BotCommand(
+        "register", 
+        "register for an account"
+        ),
+ 
+    BotCommand(
+        "deposit", 
+        "Deposit funds into your account"
+        ),
+
+            BotCommand(
+        "withdraw", 
+        "withdraw funds"
+        ),
+    BotCommand(
+        "transfer", 
+        "transfer funds to another user"
+        ),
+ 
+    BotCommand(
+        "convert", 
+        "convert coins to wallet"
+        ),
+
+          BotCommand(
+        "change_name", 
+        "Change your account names"
+        ),
+
+            BotCommand(
+        "game_history", 
+        "Check your game history"
+        ),
+    BotCommand(
+        "check_transcation", 
+        "Check your transcation history"
+        ),
+ 
+    BotCommand(
+        "invite", 
+        "Invite your friends"
+        )
+    ]
+
+
+
+
+async def post_init(app):
+    await app.bot.set_my_commands(all_public_commands_descriptions)
 
 
 def main() -> None:
-    application = (
-        Application.builder()
-        .token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww")
-        .build()
-    )
+    # application = (
+    #     Application.builder()
+    #     .token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww")
+    #     .build()
+    # )
+    application = ApplicationBuilder().token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww").post_init(post_init).build()
 
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(button)],
