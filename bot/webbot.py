@@ -93,12 +93,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'deposit':
             keyboard = [
-                [InlineKeyboardButton("Chapa", callback_data='chapa'),
+                [InlineKeyboardButton("Adiss pay", callback_data='adiss'),
                  InlineKeyboardButton("Manual", callback_data='manual')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
-        elif query.data == 'chapa':
+        elif query.data == 'adiss':
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
 
@@ -156,38 +156,33 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "tx_ref": "selam_pay_" + generate_nonce(64),
         }
     
-    
-    
         addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
 
-      
         payload = {
         "data":data,
         "message":"test message"
         }
 
-
         checkout_url =   make_request(payload,addispay_checkout_api_url)
         logger.info(f"checkout_url from backend: {checkout_url}")
-  
-        # print("checkoout url = ",checkout_url)
+
         if checkout_url:
-            await update.message.reply_text(
-                "Open web page",
-                reply_markup=ReplyKeyboardMarkup.from_button(
-                    KeyboardButton(
-                        text="Open Chapa!",
-                        web_app=WebAppInfo(url=checkout_url),
-                    )
-                ),
-            )
-     
+            keyboard = [
+                [InlineKeyboardButton("Open Selam Bingo!", web_app=WebAppInfo(url=checkout_url))]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            print("reply_markup=",reply_markup)
+
+            await query.message.reply_text("Start playing selam bingo", reply_markup=reply_markup)
+        
+      
      
         return ConversationHandler.END  # End the conversation
     except ValueError:
         await update.message.reply_text("Please enter a valid number.")
     except Exception as e:
-        logger.error(f"Error processing deposit: {e}")
+        logger.error(f"Error xxxxxxxx processing deposit: {e}")
         await update.message.reply_text("An error occurred. Please try again.")
 
 
@@ -204,43 +199,6 @@ async def request_phone_number(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 
-
-async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    amount =  float(update.message.text)
-    query = update.callback_query
-    first_name =  update.message.from_user.first_name
-    username = update.message.from_user.username
-
-    logger.info(f"Received deposit amount: {amount}")
-    addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
-    checkout_url =   make_request(payload,addispay_checkout_api_url)
-    
-    logger.info(f"checkout_url checkout_url amount: {checkout_url}")
-
-    try:
-        addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
-
-        checkout_url =   make_request(payload,addispay_checkout_api_url)
-        logger.info(f"checkout_url from backend: {checkout_url}")
-  
-        # print("checkoout url = ",checkout_url)
-        if checkout_url:
-            await update.message.reply_text(
-                "Open web page",
-                reply_markup=ReplyKeyboardMarkup.from_button(
-                    KeyboardButton(
-                        text="Open Chapa!",
-                        web_app=WebAppInfo(url=checkout_url),
-                    )
-                ),
-            )
-     
-        return ConversationHandler.END  # End the conversation
-    except ValueError:
-        await update.message.reply_text("Please enter a valid number.")
-    except Exception as e:
-        logger.error(f"Error processing deposit: {e}")
-        await update.message.reply_text("An error occurred. Please try again.")
 
 
 all_public_commands_descriptions = [
