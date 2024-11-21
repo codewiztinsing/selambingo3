@@ -74,16 +74,22 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data in ['10','20' '50','100']:
 
-            await query.message.reply_text(
-                    "Open web page",
-                    reply_markup=ReplyKeyboardMarkup.from_button(
-                        KeyboardButton(
-                            text="Open game!",
-                            web_app=WebAppInfo(url=f"https://selambingo.onrender.com/?playerId={query.from_user.id}&name={query.from_user.username}&betAmount={query.data}&wallet_amount=120"),
-                        )
-                    ),
-                )
-#
+            player_id = query.from_user.id
+            username = query.from_user.username
+            bet_amount = query.data
+            wallet_amount = 120  # Assuming this is a fixed value for demonstration
+
+            web_app_url = (
+                f"https://selambingo.onrender.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}"
+            )
+
+            keyboard = [
+                [InlineKeyboardButton("Open game!", web_app=WebAppInfo(url=web_app_url))]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await query.message.reply_text("Open web page", reply_markup=reply_markup)
+
         elif query.data == 'deposit':
             keyboard = [
                 [InlineKeyboardButton("Chapa", callback_data='chapa'),
