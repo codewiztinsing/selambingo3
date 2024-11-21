@@ -54,13 +54,13 @@ payload = {
 import json
 
 def make_request(payload,addispay_checkout_api_url):
-   response = requests.post(addispay_checkout_api_url,json=payload ,headers=headers) #json=json.dumps(payload,indent=4), )
+   response = requests.post(addispay_checkout_api_url, json=payload, headers=headers)
 
   #  print("data to api = ",payload)
    print("response = ",response.text)
    if response.status_code ==200:
      response_content = response.json()
-     return response_content["checkout_url"] + "/" + response_content["uuid"]
+     return response_content["checkout_url"] + "/"+response_content["uuid"]
    return False
 addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
 

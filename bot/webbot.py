@@ -24,6 +24,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 from telegram import BotCommand
+from .payments import make_request,generate_nonce
 
 # Enable logging
 logging.basicConfig(
@@ -84,11 +85,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             )
 
             keyboard = [
-                [InlineKeyboardButton("Open game!", web_app=WebAppInfo(url=web_app_url))]
+                [InlineKeyboardButton("Open Selam Bingo!", web_app=WebAppInfo(url=web_app_url))]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
 
-            await query.message.reply_text("Open web page", reply_markup=reply_markup)
+            await query.message.reply_text("Start playing selam bingo", reply_markup=reply_markup)
 
         elif query.data == 'deposit':
             keyboard = [
@@ -116,9 +117,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     amount =  float(update.message.text)
     query = update.callback_query
-    first_name =  update.message.from_user.first_name
+    first_name =  update.message.from_user.first_name or "Bot user"
+    last_name =  update.message.from_user.last_name or "Bot Father"
     username = update.message.from_user.username
-
+    phone = "0991221912"
     logger.info(f"Received deposit amount: {amount}")
 
     try:
@@ -126,18 +128,48 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
  
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
-        response = await chapa.initialize(
-            email=f"{first_name}@gmail.com",
+        logger.info(f"Received deposit amount: {amount}")
+        addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
 
-            amount=amount,
-            currency="ETB",
-            first_name=first_name,
-            last_name=username,
-            tx_ref=reference_no,
-            callback_url="https://selambingo.onrender.com/"
-        )
-     
-        checkout_url = response['data']['checkout_url']
+        data = {
+        "redirect_url": "https://selambingo.onrender.com/",
+        "cancel_url": "https://selambingo.onrender.com/cancel",
+        "success_url": "https://selambingo.onrender.com/",
+        "error_url": "https://selambingo.onrender.com/",
+        "order_reason": "payament for selam bingo bot",
+        "currency": "ETB",
+        "email": f"{first_name}@gmail.com",
+        "first_name": first_name,
+        "last_name": last_name,
+        "nonce":  "selam_pay_" + generate_nonce(64),
+        "order_detail": {
+            "amount":float(amount),
+            "description": "the transcationt to deposit amount in my bot wallet",
+            "items": "single bot transcation",
+            "phoneNumber": phone,
+            "telecomOperator": "ethio_telecom",
+            "image": "https://images.app.goo.gl/pYmev5W8J5AXpBin7"
+        },
+        "phone_number": phone,
+        "session_expired": "5000",
+        "total_amount": f"{amount}",
+        "tx_ref": "selam_pay_" + generate_nonce(64),
+        }
+    
+    
+    
+        addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
+
+      
+        payload = {
+        "data":data,
+        "message":"test message"
+        }
+
+
+        checkout_url =   make_request(payload,addispay_checkout_api_url)
+        logger.info(f"checkout_url from backend: {checkout_url}")
+  
         # print("checkoout url = ",checkout_url)
         if checkout_url:
             await update.message.reply_text(
@@ -150,12 +182,26 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 ),
             )
      
+     
         return ConversationHandler.END  # End the conversation
     except ValueError:
         await update.message.reply_text("Please enter a valid number.")
     except Exception as e:
         logger.error(f"Error processing deposit: {e}")
         await update.message.reply_text("An error occurred. Please try again.")
+
+
+
+
+async def request_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    phone_button = KeyboardButton("Share my phone number", request_contact=True)
+    reply_markup = ReplyKeyboardMarkup([[phone_button]], one_time_keyboard=True)
+    
+    await update.message.reply_text(
+        "Please share your phone number:",
+        reply_markup=reply_markup
+    )
+
 
 
 
@@ -166,23 +212,17 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     username = update.message.from_user.username
 
     logger.info(f"Received deposit amount: {amount}")
+    addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
+    checkout_url =   make_request(payload,addispay_checkout_api_url)
+    
+    logger.info(f"checkout_url checkout_url amount: {checkout_url}")
 
     try:
-        amount = float(amount)  # Convert to float
-        chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
-        reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
-        response = await chapa.initialize(
-            email=f"{first_name}@gmail.com",
+        addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
 
-            amount=amount,
-            currency="ETB",
-            first_name=first_name,
-            last_name=username,
-            tx_ref=reference_no,
-            callback_url="https://selambingo.onrender.com/"
-        )
-     
-        checkout_url = response['data']['checkout_url']
+        checkout_url =   make_request(payload,addispay_checkout_api_url)
+        logger.info(f"checkout_url from backend: {checkout_url}")
+  
         # print("checkoout url = ",checkout_url)
         if checkout_url:
             await update.message.reply_text(
