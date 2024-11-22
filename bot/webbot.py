@@ -1,6 +1,8 @@
 import json
+import requests
 import logging
 import random
+import string
 from decouple import config
 from telegram import (
     KeyboardButton,
@@ -23,8 +25,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 from telegram import BotCommand
-from bot.payments import make_request,generate_nonce
-
+from .register import *
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -35,22 +36,39 @@ logger = logging.getLogger(__name__)
 
 BACK_URL = config('BACK_URL')
 
+
+apiKey="DEFAULT_af37ed09-7a87-4d0a-92d4-822ac4eb3642"
+				
+headers = {
+   "Auth":apiKey
+}
+
+
+def generate_nonce(length=64):
+    characters = string.ascii_letters + string.digits + string.punctuation
+    nonce = ''.join(random.choice(characters) for _ in range(length))
+    return nonce
+
+
+
 # Define conversation states
 DEPOSIT_AMOUNT = range(1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
-        [InlineKeyboardButton("Register", callback_data='register')], 
-        [InlineKeyboardButton("Check Balance", callback_data='check_balance'),
-         InlineKeyboardButton("Deposit", callback_data='deposit')],
-        [InlineKeyboardButton("Contact Support", callback_data='contact_support'),
-         InlineKeyboardButton("Instruction", callback_data='instruction')],
-        [InlineKeyboardButton("Play10", callback_data='10'),
-         InlineKeyboardButton("Play20", callback_data='20')],
-        [InlineKeyboardButton("Play50", callback_data='50'),
-         InlineKeyboardButton("Play100", callback_data='100')],
-        [InlineKeyboardButton("Play Demo", callback_data='play_demo')]
+        [InlineKeyboardButton("🎮 Play", callback_data='play'),
+         InlineKeyboardButton("📝 Register",callback_data = "/register")],
+        [InlineKeyboardButton("💰 Check Balance", callback_data='check_balance'),
+         InlineKeyboardButton("💳 Deposit", callback_data='deposit')],
+        [InlineKeyboardButton("📞 Contact Support", callback_data='contact_support'),
+         InlineKeyboardButton("📚 Instruction", callback_data='instruction')],
     ]
+    #     [InlineKeyboardButton("Play10", callback_data='10'),
+    #      InlineKeyboardButton("Play20", callback_data='20')],
+    #     [InlineKeyboardButton("Play50", callback_data='50'),
+    #      InlineKeyboardButton("Play100", callback_data='100')],
+    #     [InlineKeyboardButton("Play Demo", callback_data='play_demo')]
+    # ]
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
@@ -62,15 +80,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if query.data == 'check_balance':
             await query.edit_message_text(text="Your balance is $100.")
-
-
-        if query.data == "register":
-           
-            keyboard = [
-                [InlineKeyboardButton("Share your Phone", callback_data='begin_register')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("Telegram profile will be used to register you in bot", reply_markup=reply_markup)
 
         elif query.data in ['10','20' '50','100']:
 
@@ -100,13 +109,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'adiss':
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
-
-        elif query.data == 'begin_register':
-            user_profile = query.from_user
-            print("user profile = ",user_profile)
-            await query.message.reply_text("Register completed")
-
-           
+        
+        elif query.data == "/register":
+            await query.edit_message_text('Welcome! Use /register to start the registration process.')
+ 
         else:
             await query.edit_message_text(text="Unknown option selected.")
     except Exception as e:
@@ -160,9 +166,11 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "data":data,
         "message":"test message"
         }
-
-        checkout_url =   make_request(payload,addispay_checkout_api_url)
-        logger.info(f"checkout_url from backend: {checkout_url}")
+        response = requests.post(addispay_checkout_api_url, json=payload, headers=headers)
+        checkout_url = None
+        if response.status_code ==200:
+            response_content = response.json()
+            checkout_url= response_content["checkout_url"] + "/"+response_content["uuid"]
 
         if checkout_url:
             keyboard = [
@@ -182,14 +190,6 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 
-async def request_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    phone_button = KeyboardButton("Share my phone number", request_contact=True)
-    reply_markup = ReplyKeyboardMarkup([[phone_button]], one_time_keyboard=True)
-    
-    await update.message.reply_text(
-        "Please share your phone number:",
-        reply_markup=reply_markup
-    )
 
 
 
@@ -261,23 +261,33 @@ async def post_init(app):
 
 
 def main() -> None:
-    # application = (
-    #     Application.builder()
-    #     .token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww")
-    #     .build()
-    # )
     application = ApplicationBuilder().token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww").post_init(post_init).build()
+
+    register_conversation_handler = ConversationHandler(
+       entry_points=[CommandHandler('register', begin_register)],
+        states={
+            PHONE: [MessageHandler(filters.CONTACT, handle_phone)],  # Listen for contact messages
+            EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_email)],
+            PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_password)],
+            CONFIRM_PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_password)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],  # Allow users to cancel the registration
+    )
+
 
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(button)],
         states={
+
             DEPOSIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, deposit_amount)],
+          
         },
         fallbacks=[],
     )
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(conv_handler)
+    application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

@@ -1,110 +1,87 @@
-import uuid
 from telegram import Update
-from telegram.ext import (
-    Updater,
-    CommandHandler,
-    ConversationHandler,
-    MessageHandler,
-    CallbackContext,
-    filters
-)
-import logging
-from telegram import (
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    Update,
-    WebAppInfo,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-)
-from queue import Queue
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ConversationHandler, ContextTypes
+# from telegram import filters  # Updated import for filters
+import requests
+import os
+from decouple import config
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 import requests
 
-# Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-# set higher logging level for httpx to avoid all GET and POST requests being logged
-logging.getLogger("httpx").setLevel(logging.WARNING)
 
-logger = logging.getLogger(__name__)
-# Define conversation states
-CHOOSING, TYPING_CHOICE, TYPING_REPLY,PASSWORD_REPLY,CALL_API = range(5)
+BACK_URL = config('BACK_URL')
+user_data = {}  # Dictionary to hold user registration data temporarily
+
+# Define states for conversation
+USERNAME, PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(5)
 
 
-# Define handler functions for the conversation
-async def start(update: Update, context) -> int:
-    user = update.message.from_user
-    logger.info("User %s started the conversation.", user.first_name)
-    await update.message.reply_text(
-        "1. register \n2. delete \n 3. update"
-    )
-    user_choice = update.message.text
-    context.user_data["choice"] = user_choice
-    return TYPING_REPLY
 
+async def handle_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    user_data[user_id]['email'] = update.message.text
 
-async def received_username(update: Update, context: CallbackContext) -> int:
-    """Store the user reply and end the conversation."""
-    await update.message.reply_text(
-        f"What is your  phone number?"
-    )
-    phone = update.message.text
-    context.user_data["phone"] = phone
-    return PASSWORD_REPLY
+    await update.message.reply_text("Please provide your password:")
+    return PASSWORD
 
+async def handle_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    user_data[user_id]['password'] = update.message.text
 
-async def received_password(update: Update, context: CallbackContext) -> int:
-    """Store the password reply and end the conversation."""
-    await update.message.reply_text(
-        f"Please input username "
-    )
-    username = update.message.text
-    context.user_data["username"] = username
-    return CALL_API
+    await update.message.reply_text("Please confirm your password:")
+    return CONFIRM_PASSWORD
 
-async def call_api(update: Update, context: CallbackContext) -> int:
-    phone = context.user_data['phone']
-    password = str(uuid.uuid4())
-    user = update.message.from_user
+async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    user_data[user_id]['confirm_password'] = update.message.text
 
-    data     = requests.post("http://127.0.0.1:8000/auth/users/",json = {
-        'username':user.username,
-        'password':f"{password}",
-        'phone':phone
+    username = user_data[user_id]['username']
+    phone = user_data[user_id]['phone']
+    email = user_data[user_id]['email']
+    password = user_data[user_id]['password']
+    confirm_password = user_data[user_id]['confirm_password']
+
+    if password != confirm_password:
+        await update.message.reply_text("Passwords do not match. Please start over.")
+        return
+
+    response = requests.post(f"{BACK_URL}/accounts/register/", json={
+        "username": username,
+        "phone": phone,
+        "email": email,
+        "password": password,
+        "password_confirm": confirm_password
     })
-    if data.status_code != 400:
-        await update.message.reply_text(f"Registred Sucessfully!")
+
+    if response.status_code == 201:  # Assume 201 means success
+        await update.message.reply_text("Registration completed successfully!")
     else:
-        await update.message.reply_text(f"Already registered!")
+        await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
+
+    del user_data[user_id]  # Clear user data after registration
+
+async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    username = update.message.from_user.username if update.message.from_user.username else "Not provided"
+    
+    await update.message.reply_text(f"Welcome! Your username is: {username}. Please share your phone number.")
+
+    # Create a button to share phone number
+    phone_button = KeyboardButton("Share Phone Number", request_contact=True)
+    reply_markup = ReplyKeyboardMarkup([[phone_button]], resize_keyboard=True, one_time_keyboard=True)
+
+    await update.message.reply_text("Click the button below to share your phone number:", reply_markup=reply_markup)
+
+    return PHONE  # Move to the PHONE state
+
+async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.contact:
+        phone_number = update.message.contact.phone_number
+        await update.message.reply_text(f"Thank you! Your phone number is: {phone_number}")
+    else:
+        await update.message.reply_text("Please use the button to share your phone number.")
+
+    return EMAIL  # End the conversation
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Registration canceled.")
     return ConversationHandler.END
-
-
-async def cancel(update: Update, context: CallbackContext) -> int:
-    """Cancel the conversation and end the ConversationHandler."""
-    user = update.message.from_user
-    await update.message.reply_text("Okay, let me know if you need anything else!")
-    return ConversationHandler.END
-
-
-
-conv_handler = ConversationHandler(
-    entry_points=[CommandHandler("register", start)],
-    states={
-        # CHOOSING: [MessageHandler(filters.Regex(r'^[0-9]$'), make_choice)],
-        TYPING_REPLY: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, received_username)
-        ],
-
-        PASSWORD_REPLY: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, received_password)
-        ],
-
-
-        CALL_API : [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, call_api)
-        ],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-)

@@ -144,5 +144,3 @@ CHAPA_API_VERSION = 'v1'
 CHAPA_TRANSACTION_MODEL = "payments.ChapaTransaction"
 
 
-from bot.webbot import main
-main()
