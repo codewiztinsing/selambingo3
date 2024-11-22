@@ -23,7 +23,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 from telegram import BotCommand
-from .payments import make_request,generate_nonce
+from bot.payments import make_request,generate_nonce
 
 # Enable logging
 logging.basicConfig(
