@@ -1,7 +1,6 @@
 import json
 import logging
 import random
-from chapa import AsyncChapa
 from decouple import config
 from telegram import (
     KeyboardButton,
@@ -124,8 +123,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     logger.info(f"Received deposit amount: {amount}")
 
     try:
-        amount = float(amount)  # Convert to float
-        chapa = AsyncChapa('CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk')
+        amount = float(amount)
  
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         logger.info(f"Received deposit amount: {amount}")
@@ -168,21 +166,17 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         if checkout_url:
             keyboard = [
-                [InlineKeyboardButton("Open Selam Bingo!", web_app=WebAppInfo(url=checkout_url))]
+                [InlineKeyboardButton("Open Adiss pay!", web_app=WebAppInfo(url=checkout_url))]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text("pay with Adiss pay", reply_markup=reply_markup)
 
-            print("reply_markup=",reply_markup)
 
-            await query.message.reply_text("Start playing selam bingo", reply_markup=reply_markup)
-        
-      
-     
         return ConversationHandler.END  # End the conversation
     except ValueError:
         await update.message.reply_text("Please enter a valid number.")
     except Exception as e:
-        logger.error(f"Error xxxxxxxx processing deposit: {e}")
+        logger.error(f"Error processing deposit: {e}")
         await update.message.reply_text("An error occurred. Please try again.")
 
 
