@@ -83,18 +83,25 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 
 
 
+async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = play_options_keyboard()  # Create the inline keyboard
+    await update.message.reply_text("Choose a play option:", reply_markup=reply_markup)
+
+
 # Function to create the play options keyboard
 def instructions_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton("📝 Registraion", callback_data='register_instructions'),
-         InlineKeyboardButton("🎮 Game play ", callback_data='play_instruction')
+            InlineKeyboardButton("🎮 Game play ", callback_data='play_instruction')
          ],
         [
-        InlineKeyboardButton("💰 Deposit", callback_data='deposit_instruction'),
-         InlineKeyboardButton("💰 Withdraw", callback_data='withdraw_instruction')
+            InlineKeyboardButton("💰 Deposit", callback_data='deposit_instruction'),
+            InlineKeyboardButton("💰 Withdraw", callback_data='withdraw_instruction')
          ],
-         [InlineKeyboardButton("🔙 Back", callback_data='back')]
+         [
+             InlineKeyboardButton("🔙 Back", callback_data='back')
+        ]
     ]
     
 
@@ -125,12 +132,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'register_instructions':
             chat_id = update.effective_chat.id
-            local_video_path = './assets/register.mp4'  # Replace with your local video path
+            local_video_path = './assets/register.mp4'
             caption = 'Regisrations instruction!'
 
             with open(local_video_path, 'rb') as video_file:
                 await context.bot.send_video(chat_id=chat_id, video=video_file, caption=caption)
-
 
 
         elif query.data == 'check_balance':
@@ -245,12 +251,6 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 
-
-
-
-
-
-
 all_public_commands_descriptions = [
     BotCommand(
         "start", 
@@ -275,7 +275,7 @@ all_public_commands_descriptions = [
         "Deposit funds into your account"
         ),
 
-            BotCommand(
+    BotCommand(
         "withdraw", 
         "withdraw funds"
         ),
@@ -289,12 +289,12 @@ all_public_commands_descriptions = [
         "convert coins to wallet"
         ),
 
-          BotCommand(
+    BotCommand(
         "change_name", 
         "Change your account names"
         ),
 
-            BotCommand(
+    BotCommand(
         "game_history", 
         "Check your game history"
         ),
@@ -339,6 +339,7 @@ def main() -> None:
     )
 
     application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('play', play_command))
     application.add_handler(deposit_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
