@@ -61,7 +61,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("💰 Check Balance", callback_data='check_balance'),
          InlineKeyboardButton("💳 Deposit", callback_data='deposit')],
         [InlineKeyboardButton("📞 Contact Support", callback_data='contact_support'),
-         InlineKeyboardButton("📚 Instruction", callback_data='instruction')],
+         InlineKeyboardButton("📚 Instruction", callback_data='instructions')],
     ]
     
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -82,6 +82,28 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 
 
 
+
+# Function to create the play options keyboard
+def instructions_options_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+        [
+            InlineKeyboardButton("📝 Registraion", callback_data='register_instruction'),
+         InlineKeyboardButton("🎮 Game play ", callback_data='play_instruction')
+         ],
+        [
+        InlineKeyboardButton("💰 Deposit", callback_data='deposit_instruction'),
+         InlineKeyboardButton("💰 Withdraw", callback_data='withdraw_instruction')
+         ],
+         [InlineKeyboardButton("🔙 Back", callback_data='back')]
+    ]
+    
+
+    
+    return InlineKeyboardMarkup(keyboard)
+
+
+
+
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -93,6 +115,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 text="Choose a play option:",
                 reply_markup=play_options_keyboard()
             )
+
+        elif query.data == 'instructions':
+            await query.edit_message_text(
+                text="Choose a play option:",
+                reply_markup=instructions_options_keyboard()
+            )
+
 
 
         elif query.data == 'check_balance':
