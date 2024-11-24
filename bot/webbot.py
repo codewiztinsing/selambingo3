@@ -88,6 +88,11 @@ async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Choose a play option:", reply_markup=reply_markup)
 
 
+
+
+
+
+
 # Function to create the play options keyboard
 def instructions_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
@@ -105,9 +110,13 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
     ]
     
 
-    
     return InlineKeyboardMarkup(keyboard)
 
+
+
+async def instruction_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = instructions_options_keyboard()  # Create the inline keyboard
+    await update.message.reply_text("Choose a instruction option:", reply_markup=reply_markup)
 
 
 
@@ -340,6 +349,7 @@ def main() -> None:
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('play', play_command))
+    application.add_handler(CommandHandler('instructions', instruction_command))
     application.add_handler(deposit_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
