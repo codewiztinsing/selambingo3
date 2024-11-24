@@ -135,7 +135,7 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
 # Function to create the play options keyboard
 def support_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
-        [InlineKeyboardButton("📞 Support",  url='https://t.me/@Selam_bingo_bot'))],
+        [InlineKeyboardButton("📞 Support",  url='https://t.me/@Selam_bingo_bot')],
     ]
     return InlineKeyboardMarkup(keyboard)
 
