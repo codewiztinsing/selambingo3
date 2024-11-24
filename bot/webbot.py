@@ -172,6 +172,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 reply_markup=instructions_options_keyboard()
             )
 
+        elif query.data == 'contact_support':
+            await query.edit_message_text(
+                text="Choose a contact support:",
+                reply_markup=support_options_keyboard()
+            )
+
+            
+
 
         elif query.data == 'register_instructions':
             chat_id = update.effective_chat.id
