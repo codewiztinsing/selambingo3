@@ -270,6 +270,11 @@ all_public_commands_descriptions = [
         "play", 
         "start playing"
         ),
+
+    BotCommand(
+        "instructions", 
+        "instructions to play game"
+        ),
     BotCommand(
         "demo", 
         "start playing demo game"
