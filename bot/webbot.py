@@ -138,6 +138,14 @@ async def instruction_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_text("Choose a instruction option:", reply_markup=reply_markup)
 
 
+async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = [
+        [InlineKeyboardButton("📞 Support", callback_data='support')],
+
+    ] # Create the inline keyboard
+    await update.message.reply_text("Contact us using support button:", reply_markup=reply_markup)
+
+
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -377,6 +385,7 @@ def main() -> None:
     application.add_handler(CommandHandler('play', play_command))
     application.add_handler(CommandHandler("deposit",deposit_command))
     application.add_handler(CommandHandler('instructions', instruction_command))
+    application.add_handler(CommandHandler('support', support_command))
     application.add_handler(deposit_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
