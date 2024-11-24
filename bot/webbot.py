@@ -191,7 +191,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
         elif query.data == 'check_balance':
-            await query.edit_message_text(text="Your balance is $100.")
+            await query.edit_message_text(text="Your balance is 0 ETB.")
 
         elif query.data in ['10','20', '50','100']:
 
