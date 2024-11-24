@@ -71,11 +71,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # Function to create the play options keyboard
 def play_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
-        [InlineKeyboardButton("Play10", callback_data='10'),
-         InlineKeyboardButton("Play20", callback_data='20')],
-        [InlineKeyboardButton("Play50", callback_data='50'),
-         InlineKeyboardButton("Play100", callback_data='100')],
-        [InlineKeyboardButton("Play Demo", callback_data='play_demo'),
+        [InlineKeyboardButton("🎮 Play 10", callback_data='10'),
+         InlineKeyboardButton("🎮 Play 20", callback_data='20')],
+        [InlineKeyboardButton("🎮 Play 50", callback_data='50'),
+         InlineKeyboardButton("🎮 Play 100", callback_data='100')],
+        [InlineKeyboardButton("🎮 Play Demo", callback_data='play_demo'),
          InlineKeyboardButton("🔙 Back", callback_data='back')],
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -98,12 +98,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'check_balance':
             await query.edit_message_text(text="Your balance is $100.")
 
-        elif query.data in ['10','20' '50','100']:
+        elif query.data in ['10','20', '50','100']:
 
             player_id = query.from_user.id
             username = query.from_user.username
             bet_amount = query.data
-            wallet_amount = 120  # Assuming this is a fixed value for demonstration
+            wallet_amount = 120 
+            print("data = ",query.data)
 
             web_app_url = (
                 f"https://selambingo.onrender.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}"
@@ -301,7 +302,6 @@ def main() -> None:
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(deposit_conversation_handler)
-    application.add_handler(register_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
