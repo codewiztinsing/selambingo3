@@ -82,11 +82,17 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 
 
 
+def deposit_opitions_keyboard():
+    keyboard = [
+                [InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                 InlineKeyboardButton("Manual", callback_data='manual')]
+            ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
 
 async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = play_options_keyboard()  # Create the inline keyboard
     await update.message.reply_text("Choose a play option:", reply_markup=reply_markup)
-
 
 
 
@@ -111,6 +117,13 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
     
 
     return InlineKeyboardMarkup(keyboard)
+
+
+
+async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = deposit_opitions_keyboard()  # Create the inline keyboard
+    await update.message.reply_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
+
 
 
 
@@ -354,6 +367,7 @@ def main() -> None:
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('play', play_command))
+    application.add_handler(CommandHandler("deposit",deposit_command))
     application.add_handler(CommandHandler('instructions', instruction_command))
     application.add_handler(deposit_conversation_handler)
     application.add_handler(register_conversation_handler)
