@@ -12,7 +12,7 @@ BACK_URL = config('BACK_URL')
 user_data = {}  # Dictionary to hold user registration data temporarily
 
 # Define states for conversation
-USERNAME, PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(5)
+PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(4)
 
 
 
@@ -76,9 +76,11 @@ async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.contact:
         phone_number = update.message.contact.phone_number
-        await update.message.reply_text(f"Thank you! Your phone number is: {phone_number}")
+        await update.message.reply_text(f"Thank you ! Your phone number is: {phone_number}")
+        return EMAIL
     else:
         await update.message.reply_text("Please use the button to share your phone number.")
+        return EMAIL
 
     return EMAIL  # End the conversation
 

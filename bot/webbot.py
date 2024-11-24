@@ -63,22 +63,39 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("📞 Contact Support", callback_data='contact_support'),
          InlineKeyboardButton("📚 Instruction", callback_data='instruction')],
     ]
-    #     [InlineKeyboardButton("Play10", callback_data='10'),
-    #      InlineKeyboardButton("Play20", callback_data='20')],
-    #     [InlineKeyboardButton("Play50", callback_data='50'),
-    #      InlineKeyboardButton("Play100", callback_data='100')],
-    #     [InlineKeyboardButton("Play Demo", callback_data='play_demo')]
-    # ]
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
+
+
+# Function to create the play options keyboard
+def play_options_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton("Play10", callback_data='10'),
+         InlineKeyboardButton("Play20", callback_data='20')],
+        [InlineKeyboardButton("Play50", callback_data='50'),
+         InlineKeyboardButton("Play100", callback_data='100')],
+        [InlineKeyboardButton("Play Demo", callback_data='play_demo'),
+         InlineKeyboardButton("🔙 Back", callback_data='back')],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
     try:
-        if query.data == 'check_balance':
+
+        if query.data == 'play':
+            await query.edit_message_text(
+                text="Choose a play option:",
+                reply_markup=play_options_keyboard()
+            )
+
+
+        elif query.data == 'check_balance':
             await query.edit_message_text(text="Your balance is $100.")
 
         elif query.data in ['10','20' '50','100']:
@@ -264,29 +281,27 @@ def main() -> None:
     application = ApplicationBuilder().token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww").post_init(post_init).build()
 
     register_conversation_handler = ConversationHandler(
-       entry_points=[CommandHandler('register', begin_register)],
+        entry_points=[CommandHandler('register', begin_register)],
         states={
-            PHONE: [MessageHandler(filters.CONTACT, handle_phone)],  # Listen for contact messages
+            PHONE: [MessageHandler(filters.CONTACT, handle_phone)],
             EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_email)],
             PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_password)],
             CONFIRM_PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_password)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)],  # Allow users to cancel the registration
+        fallbacks=[CommandHandler('cancel', cancel)],
     )
 
-
-    conv_handler = ConversationHandler(
+    deposit_conversation_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(button)],
         states={
-
             DEPOSIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, deposit_amount)],
-          
         },
         fallbacks=[],
     )
 
     application.add_handler(CommandHandler('start', start))
-    application.add_handler(conv_handler)
+    application.add_handler(deposit_conversation_handler)
+    application.add_handler(register_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
