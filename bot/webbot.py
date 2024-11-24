@@ -87,7 +87,7 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 def instructions_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
         [
-            InlineKeyboardButton("📝 Registraion", callback_data='register_instruction'),
+            InlineKeyboardButton("📝 Registraion", callback_data='register_instructions'),
          InlineKeyboardButton("🎮 Game play ", callback_data='play_instruction')
          ],
         [
@@ -121,6 +121,15 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 text="Choose a play option:",
                 reply_markup=instructions_options_keyboard()
             )
+
+
+        elif query.data == 'register_instructions':
+            chat_id = update.effective_chat.id
+            local_video_path = './assets/register.mp4'  # Replace with your local video path
+            caption = 'Regisrations instruction!'
+
+            with open(local_video_path, 'rb') as video_file:
+                await context.bot.send_video(chat_id=chat_id, video=video_file, caption=caption)
 
 
 
