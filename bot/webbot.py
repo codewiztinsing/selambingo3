@@ -76,7 +76,8 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🎮 Play 50", callback_data='50'),
          InlineKeyboardButton("🎮 Play 100", callback_data='100')],
         [InlineKeyboardButton("🎮 Play Demo", callback_data='play_demo'),
-         InlineKeyboardButton("🔙 Back", callback_data='back')],
+         InlineKeyboardButton("🔙 Back", callback_data='back')
+         ],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -85,8 +86,12 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                    InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                InlineKeyboardButton("Adiss pay", callback_data='adiss'),
                  InlineKeyboardButton("Manual", callback_data='manual')
+                 ],
+                 [
+                InlineKeyboardButton("🔙 Back", callback_data='back')
+ 
                  ]
             ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -197,7 +202,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
         elif query.data == "/register":
             await query.edit_message_text('Welcome! Use /register to start the registration process.')
-        elif query.data == 'back_to_main':
+        elif query.data == 'back':
             await start(update, context) 
  
         else:
