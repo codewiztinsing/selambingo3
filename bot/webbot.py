@@ -76,7 +76,7 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🎮 Play 50", callback_data='50'),
          InlineKeyboardButton("🎮 Play 100", callback_data='100')],
         [InlineKeyboardButton("🎮 Play Demo", callback_data='play_demo'),
-         InlineKeyboardButton("🔙 Back", callback_data='back')
+         InlineKeyboardButton("🔙  Back to Menu", callback_data='back')
          ],
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -90,7 +90,7 @@ def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
                  InlineKeyboardButton("Manual", callback_data='manual')
                  ],
                  [
-                InlineKeyboardButton("🔙 Back", callback_data='back')
+                InlineKeyboardButton("🔙 Back to Menu", callback_data='back')
  
                  ]
             ]
@@ -122,7 +122,7 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton("💰 Deposit", callback_data='deposit_instruction'),
             InlineKeyboardButton("💰 Withdraw", callback_data='withdraw_instruction')
          ],
-         [InlineKeyboardButton("🔙 Back", callback_data='back')]
+         [InlineKeyboardButton("🔙 Back to Menu", callback_data='back')]
     ]
     
 
@@ -223,7 +223,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
-        elif query.data == "/register":
+        elif query.data == "register":
             await query.edit_message_text('Welcome! Use /register to start the registration process.')
         elif query.data == 'back':
             await start(update, context) 
