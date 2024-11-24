@@ -137,11 +137,13 @@ def support_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
         [InlineKeyboardButton("📞 Support", callback_data='support')],
     ]
-    
-
     return InlineKeyboardMarkup(keyboard)
 
 
+
+async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = support_options_keyboard()
+    await update.message.reply_text("Contact us using support button.:", reply_markup=reply_markup)
 
 
 
@@ -149,10 +151,6 @@ async def instruction_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     reply_markup = instructions_options_keyboard()  # Create the inline keyboard
     await update.message.reply_text("Choose a instruction option:", reply_markup=reply_markup)
 
-
-async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    reply_markup = support_options_keyboard
-    await update.message.reply_text("Contact us using support button.:", reply_markup=reply_markup)
 
 
 
