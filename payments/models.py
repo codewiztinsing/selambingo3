@@ -1,11 +1,11 @@
 from django.db import models
-from accounts.models import BotUser
+from accounts.models import TelegramUser
 
 NULL = {"null": True, "blank": True}
 
 
 class ChapaTransaction(models.Model):
-    user = models.ForeignKey(BotUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
     pay_url = models.URLField()
     charge_price = models.FloatField(default=0)
     amount = models.BigIntegerField(default=0)

@@ -1,13 +1,13 @@
 # serializers.py
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from accounts.models import TelegramUser
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     password_confirm = serializers.CharField(write_only=True, label='Confirm Password')
 
     class Meta:
-        model = User
+        model = TelegramUser
         fields = ['username', 'email', 'password', 'password_confirm']
 
     def validate(self, data):
@@ -17,7 +17,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('password_confirm')
-        user = User(
+        user = TelegramUser(
             username=validated_data['username'],
             email=validated_data['email'],
         )

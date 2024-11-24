@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.urls import path,include
 from django.shortcuts import HttpResponse
-from bot.webbot import main
 import asyncio
 
 def landing(request):

@@ -7,6 +7,14 @@ from decouple import config
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 import requests
 import re
+from telegram import (
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    Update,
+    WebAppInfo,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 BACK_URL = config('BACK_URL')
 user_data = {}  
@@ -16,6 +24,22 @@ PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(4)
 
 # Email validation regex pattern
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+
+
+
+def play_options_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton("🎮 Play 10", callback_data='10'),
+         InlineKeyboardButton("🎮 Play 20", callback_data='20')],
+        [InlineKeyboardButton("🎮 Play 50", callback_data='50'),
+         InlineKeyboardButton("🎮 Play 100", callback_data='100')],
+        [InlineKeyboardButton("🎮 Play Demo", callback_data='play_demo'),
+         InlineKeyboardButton("🔙  Back to Menu", callback_data='back')
+         ],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
 
 async def handle_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -46,6 +70,8 @@ async def handle_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    first_name = update.message.from_user.first_name,
+    last_name = update.message.from_user.last_name
     user_data['confirm_password'] = update.message.text
 
     username = user_data.get("username","botuser")
@@ -58,13 +84,17 @@ async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_
         await update.message.reply_text("Passwords do not match. Please start over.")
         return
 
-    response = requests.post(f"http://188.245.75.205:8080/accounts/register/", json={
+    response = requests.post(f"{BACK_URL}/accounts/register/", json={
         "username": username,
         "phone": phone,
+        "first_name":first_name,
+        "last_name":last_name,
         "email": email,
         "password": password,
         "password_confirm": confirm_password
     })
+
+    print("response = ",response)
 
     if response.status_code == 201:  # Assume 201 means success
         await update.message.reply_text("Registration completed successfully!")
@@ -76,23 +106,34 @@ async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_
 async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     username = update.message.from_user.username if update.message.from_user.username else "Not provided"
-    user_data[username] = username
+    user_data["username"] = username
+
+    url  = f"{BACK_URL}/accounts/filter-users/?username={username}"
+    user_exists  = requests.get(url).json()
+    if len(user_exists) > 0:
+        await update.message.reply_text(
+                text="You are already registred,please start playing:",
+                reply_markup=play_options_keyboard()
+            )
+    else:
+        await update.message.reply_text(f"Welcome! Your username is: {username}. Please share your phone number.")
+
+        # Create a button to share phone number
+        phone_button = KeyboardButton("Share Phone Number", request_contact=True)
     
-    await update.message.reply_text(f"Welcome! Your username is: {username}. Please share your phone number.")
+    
+        reply_markup = ReplyKeyboardMarkup([[phone_button]], resize_keyboard=True, one_time_keyboard=True)
 
-    # Create a button to share phone number
-    phone_button = KeyboardButton("Share Phone Number", request_contact=True)
-    user_data[user_id] = {'phone': phone_button}
-    reply_markup = ReplyKeyboardMarkup([[phone_button]], resize_keyboard=True, one_time_keyboard=True)
+        await update.message.reply_text("Click the button below to share your phone number:", reply_markup=reply_markup)
 
-    await update.message.reply_text("Click the button below to share your phone number:", reply_markup=reply_markup)
-
-    return PHONE  # Move to the PHONE state
+        return PHONE  # Move to the PHONE state
 
 async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check if the message contains a contact
     if update.message.contact:
         phone_number = update.message.contact.phone_number
+        user_data["phone"] = phone_number
+      
         
         await update.message.reply_text(f"Plase Enter your  email")
         return EMAIL  # Proceed to the next state (EMAIL)

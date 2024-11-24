@@ -1,6 +1,6 @@
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -68,7 +68,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "botbackend.wsgi.application"
 
-
+AUTH_USER_MODEL = 'accounts.TelegramUser'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -123,24 +123,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+
+# Directory where static files will be collected
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For production
+
+# Additional directories where Django will search for static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Your static files directory
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-COMPRESS_ROOT = BASE_DIR / 'static'
-COMPRESS_ENABLED = True
-STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-
-
-CHAPA_SECRET = "CHASECK_TEST-vlw3GDzGJjCYI2GU9FDfInYk1L2t4KAk"
-
-CHAPA_API_URL = 'https://api.chapa.co/v1/hosted/pay'
-
-CHAPA_API_VERSION = 'v1'
-
-CHAPA_TRANSACTION_MODEL = "payments.ChapaTransaction"
-
-

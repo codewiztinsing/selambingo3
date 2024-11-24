@@ -1,10 +1,10 @@
 from django.db import models
-from accounts.models import BotUser
-from django.contrib.auth.models import User
+from accounts.models import TelegramUser
+
 
 
 class Balance(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE,blank=False,null=False)
+    user = models.ForeignKey(TelegramUser,on_delete=models.CASCADE,blank=False,null=False)
     amount = models.FloatField(default=0)
 
 
@@ -16,7 +16,7 @@ class Balance(models.Model):
 
 
 class Wallet(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
+    user = models.OneToOneField(TelegramUser, on_delete=models.CASCADE, related_name='wallet')
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
