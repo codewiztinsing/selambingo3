@@ -82,20 +82,27 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 
 
 
-def deposit_opitions_keyboard():
+def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
-                [InlineKeyboardButton("Adiss pay", callback_data='adiss'),
-                 InlineKeyboardButton("Manual", callback_data='manual')]
+                [
+                    InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                 InlineKeyboardButton("Manual", callback_data='manual')
+                 ]
             ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    return reply_markup
+
+
+
+async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = deposit_opitions_keyboard()  # Create the inline keyboard
+    await update.message.reply_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
+
 
 
 async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = play_options_keyboard()  # Create the inline keyboard
     await update.message.reply_text("Choose a play option:", reply_markup=reply_markup)
-
-
-
 
 
 
@@ -110,19 +117,13 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton("💰 Deposit", callback_data='deposit_instruction'),
             InlineKeyboardButton("💰 Withdraw", callback_data='withdraw_instruction')
          ],
-         [
-             InlineKeyboardButton("🔙 Back", callback_data='back')
-        ]
+         [InlineKeyboardButton("🔙 Back", callback_data='back')]
     ]
     
 
     return InlineKeyboardMarkup(keyboard)
 
 
-
-async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    reply_markup = deposit_opitions_keyboard()  # Create the inline keyboard
-    await update.message.reply_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
 
 
 
