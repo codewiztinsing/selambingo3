@@ -90,7 +90,7 @@ def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
                  InlineKeyboardButton("Manual", callback_data='manual')
                  ],
                  [
-                InlineKeyboardButton("🔙 Back to Menu", callback_data='back')
+                InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')
  
                  ]
             ]
@@ -225,11 +225,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
         elif query.data == "register":
             await query.edit_message_text('Welcome! Use /register to start the registration process.')
-        elif query.data == 'back':
+        elif query.data == 'menu':
             await start(update, context) 
  
         else:
-            await query.edit_message_text(text="Unknown option selected.")
+            await start(update, context) 
     except Exception as e:
         logger.error(f"Error handling query: {query.data} - {e}")
         await query.edit_message_text(text="An error occurred. Please try again.")
