@@ -25,7 +25,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 from telegram import BotCommand
-from .register import *
+from register import *
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
