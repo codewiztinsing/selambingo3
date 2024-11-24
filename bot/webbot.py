@@ -197,6 +197,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
         elif query.data == "/register":
             await query.edit_message_text('Welcome! Use /register to start the registration process.')
+        elif query.data == 'back_to_main':
+            await start(update, context) 
  
         else:
             await query.edit_message_text(text="Unknown option selected.")
