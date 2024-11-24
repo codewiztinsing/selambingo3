@@ -143,7 +143,7 @@ async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📞 Support", callback_data='support')],
 
     ] # Create the inline keyboard
-    await update.message.reply_text("Contact us using support button:", reply_markup=reply_markup)
+    await update.message.reply_text("Contact us using support button.:", reply_markup=reply_markup)
 
 
 
@@ -303,6 +303,11 @@ all_public_commands_descriptions = [
     BotCommand(
         "instructions", 
         "instructions to play game"
+        ),
+
+      BotCommand(
+        "support", 
+        "Contact us"
         ),
     BotCommand(
         "demo", 
