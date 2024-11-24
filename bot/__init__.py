@@ -1,2 +1,1 @@
-from . import register
-# from . import webbot
+import register
