@@ -36,9 +36,10 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 BACK_URL = config('BACK_URL')
+BOT_TOKEN = config('BOT_TOKEN')
 
 
-apiKey="DEFAULT_af37ed09-7a87-4d0a-92d4-822ac4eb3642"
+apiKey=  config('ADISS_SECRET')
 				
 headers = {
    "Auth":apiKey
@@ -241,7 +242,11 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     first_name =  update.message.from_user.first_name or "Bot user"
     last_name =  update.message.from_user.last_name or "Bot Father"
     username = update.message.from_user.username
-    phone = "0991221912"
+    phone = None
+    if update.message.from_user:
+        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()[0].get('phone')
+        print("phone = ",phone)
+
     logger.info(f"Received deposit amount: {amount}")
 
     try:
@@ -249,13 +254,12 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
  
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         logger.info(f"Received deposit amount: {amount}")
-        addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
 
         data = {
-        "redirect_url": "https://selambingo.onrender.com/",
-        "cancel_url": "https://selambingo.onrender.com/cancel",
-        "success_url": "https://selambingo.onrender.com/",
-        "error_url": "https://selambingo.onrender.com/",
+        "redirect_url": "https://selambingo.com/",
+        "cancel_url": "https://selambingo.com/cancel",
+        "success_url": "https://selambingo.com/",
+        "error_url": "https://selambingo.com/",
         "order_reason": "payament for selam bingo bot",
         "currency": "ETB",
         "email": f"{first_name}@gmail.com",
@@ -276,7 +280,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         "tx_ref": "selam_pay_" + generate_nonce(64),
         }
     
-        addispay_checkout_api_url="https://uat.api.addispay.et/checkout-api/v1/create-order"
+        addispay_checkout_api_url="https://api.addispay.et/checkout-api/v1/create-order"
 
         payload = {
         "data":data,
@@ -294,7 +298,6 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text("pay with Adiss pay", reply_markup=reply_markup)
-
 
         return ConversationHandler.END  # End the conversation
     except ValueError:
@@ -381,7 +384,7 @@ async def post_init(app):
 
 
 def main() -> None:
-    application = ApplicationBuilder().token("6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww").post_init(post_init).build()
+    application = ApplicationBuilder().token(BOT_TOKEN).post_init(post_init).build()
 
     register_conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('register', begin_register)],

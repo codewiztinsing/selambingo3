@@ -3,16 +3,6 @@ from accounts.models import TelegramUser
 
 
 
-class Balance(models.Model):
-    user = models.ForeignKey(TelegramUser,on_delete=models.CASCADE,blank=False,null=False)
-    amount = models.FloatField(default=0)
-
-
-    def __str__(self):
-        return f"{self.user.username} has {self.amount} ETB in wallet"
-
-
-
 
 
 class Wallet(models.Model):

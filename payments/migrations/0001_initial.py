@@ -9,38 +9,38 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("accounts", "0002_alter_botuser_options_botuser_date_joined_and_more"),
+        # ("accounts", "0002_alter_botuser_options_botuser_date_joined_and_more"),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="ChapaTransaction",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                ("pay_url", models.URLField()),
-                ("charge_price", models.FloatField(default=0)),
-                ("amount", models.BigIntegerField(default=0)),
-                ("is_paid", models.BooleanField(default=False)),
-                (
-                    "reference_no",
-                    models.CharField(blank=True, max_length=100, null=True),
-                ),
-                ("tx_ref", models.CharField(max_length=500)),
-                (
-                    "user",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="accounts.botuser",
-                    ),
-                ),
-            ],
-        ),
+        # migrations.CreateModel(
+        #     name="ChapaTransaction",
+        #     fields=[
+        #         (
+        #             "id",
+        #             models.BigAutoField(
+        #                 auto_created=True,
+        #                 primary_key=True,
+        #                 serialize=False,
+        #                 verbose_name="ID",
+        #             ),
+        #         ),
+        #         ("pay_url", models.URLField()),
+        #         ("charge_price", models.FloatField(default=0)),
+        #         ("amount", models.BigIntegerField(default=0)),
+        #         ("is_paid", models.BooleanField(default=False)),
+        #         (
+        #             "reference_no",
+        #             models.CharField(blank=True, max_length=100, null=True),
+        #         ),
+        #         ("tx_ref", models.CharField(max_length=500)),
+        #         (
+        #             "user",
+        #             models.ForeignKey(
+        #                 on_delete=django.db.models.deletion.CASCADE,
+        #                 to="accounts.botuser",
+        #             ),
+        #         ),
+        #     ],
+        # ),
     ]

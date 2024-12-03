@@ -68,40 +68,7 @@ async def handle_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please confirm your password:")
     return CONFIRM_PASSWORD
 
-async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    first_name = update.message.from_user.first_name,
-    last_name = update.message.from_user.last_name
-    user_data['confirm_password'] = update.message.text
 
-    username = user_data.get("username","botuser")
-    phone = user_data.get('phone',"botphone")
-    email = user_data.get('email',"botemail@gmail.com")
-    password = user_data.get('password')
-    confirm_password = user_data.get('confirm_password')
-
-    if password != confirm_password:
-        await update.message.reply_text("Passwords do not match. Please start over.")
-        return
-
-    response = requests.post(f"{BACK_URL}/accounts/register/", json={
-        "username": username,
-        "phone": phone,
-        "first_name":first_name,
-        "last_name":last_name,
-        "email": email,
-        "password": password,
-        "password_confirm": confirm_password
-    })
-
-    print("response = ",response)
-
-    if response.status_code == 201:  # Assume 201 means success
-        await update.message.reply_text("Registration completed successfully!")
-    else:
-        await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
-
-    del user_data[user_id]  # Clear user data after registration
 
 async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -135,8 +102,8 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data["phone"] = phone_number
       
         
-        await update.message.reply_text(f"Plase Enter your  email")
-        return EMAIL  # Proceed to the next state (EMAIL)
+        await update.message.reply_text(f"Plase Enter your  Password")
+        return PASSWORD  # Proceed to the next state (EMAIL)
     else:
         await update.message.reply_text("Please use the button to share your phone number.")
         return PHONE  # Stay in the current state (PHONE) until a contact is received
@@ -144,3 +111,39 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Registration canceled.")
     return ConversationHandler.END
+
+
+async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    first_name = update.message.from_user.first_name,
+    last_name = update.message.from_user.last_name
+    confirm_password= update.message.text
+    user_data.update({'password_confirm':confirm_password})
+    user_data.update({
+        'telegram_id': update.message.from_user.id
+    })
+    user_data.update({
+        'phone': user_data.get('phone',"botphone")
+    })
+
+    username = user_data.get("username","botuser")
+    phone = user_data.get('phone',"botphone")
+    password = user_data.get('password')
+    confirm_password = user_data.get('password_confirm')
+
+    if password != confirm_password:
+        await update.message.reply_text("Passwords do not match. Please start over.")
+        return PASSWORD
+    
+
+    response = requests.post(f"{BACK_URL}/accounts/register/", data=user_data)
+
+    print("response = ",response)
+
+    if response.status_code == 201:  # Assume 201 means success
+        await update.message.reply_text("Registration completed successfully!")
+    else:
+        print("response.json()=   ",response.json())
+        await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
+
+    # del user_data[user_id]  # Clear user data after registration

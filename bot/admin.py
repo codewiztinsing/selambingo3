@@ -1,8 +1,6 @@
 from django.contrib import admin
-from .models import Balance,Wallet
+from .models import Wallet
 
-
-admin.site.register(Balance)
 admin.site.register(Wallet)
 
 
