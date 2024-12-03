@@ -59,7 +59,7 @@ DEPOSIT_AMOUNT = range(1)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("🎮 Play", callback_data='play'),
-         InlineKeyboardButton("📝 Register",callback_data = "/register")],
+         InlineKeyboardButton("📝 Register",callback_data = "register")],
         [InlineKeyboardButton("💰 Check Balance", callback_data='check_balance'),
          InlineKeyboardButton("💳 Deposit", callback_data='deposit')],
         [InlineKeyboardButton("📞 Contact Support", callback_data='contact_support'),
@@ -226,9 +226,13 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
         elif query.data == "register":
+           
+            # return begin_register(update,context)
             await query.edit_message_text('Welcome! Use /register to start the registration process.')
+          
         elif query.data == 'menu':
             await start(update, context) 
+            
  
         else:
             await start(update, context) 
