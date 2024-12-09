@@ -28,6 +28,7 @@ from telegram import BotCommand
 from register import *
 
 
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -106,9 +107,16 @@ async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
 
 
-
 async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    reply_markup = play_options_keyboard()  # Create the inline keyboard
+    reply_markup = play_options_keyboard() 
+    user_id = update.effective_user.id
+    username = update.effective_user.username
+    try:
+        balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json()[0].get('balance')
+        print("balance = ",balance)
+    except Exception as e:
+        print(f"Error getting wallet balance: {e}")
+  
     await update.message.reply_text("Choose a play option:", reply_markup=reply_markup)
 
 
@@ -204,7 +212,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             print("data = ",query.data)
 
             web_app_url = (
-                f"https://selambingo.onrender.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}"
+                f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}"
             )
 
             keyboard = [
@@ -260,10 +268,10 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         logger.info(f"Received deposit amount: {amount}")
 
         data = {
-        "redirect_url": "https://selambingo.com/",
-        "cancel_url": "https://selambingo.com/cancel",
-        "success_url": "https://selambingo.com/",
-        "error_url": "https://selambingo.com/",
+        "redirect_url": "https://api.selambingo.com/",
+        "cancel_url": "https://api.selambingo.com/cancel",
+        "success_url": "https://api.selambingo.com/success/",
+        "error_url": "https://api.selambingo.com/error/",
         "order_reason": "payament for selam bingo bot",
         "currency": "ETB",
         "email": f"{first_name}@gmail.com",

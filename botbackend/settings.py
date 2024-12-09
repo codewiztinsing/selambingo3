@@ -14,7 +14,7 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["selambingo.pythonanywhere.com","127.0.0.1","188.245.75.205"]
+ALLOWED_HOSTS = ["selambingo.pythonanywhere.com","127.0.0.1","18.144.126.117"]
 
 
 # Application definition
@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "bot",
-    "payments",
+    # "payments",
     'rest_framework',
     'djoser',
     'compressor', 
