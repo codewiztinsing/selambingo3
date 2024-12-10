@@ -320,6 +320,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "description": "the transcationt to deposit amount in my bot wallet",
             "items": "single bot transcation",
             "phoneNumber": phone,
+            "usernmae": username,
             "telecomOperator": "ethio_telecom",
             "image": "https://images.app.goo.gl/pYmev5W8J5AXpBin7"
         },
