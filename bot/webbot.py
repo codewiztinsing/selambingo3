@@ -169,8 +169,40 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await query.answer()
 
     try:
+        if query.data in ['10', '20', '50', '100']:
+            username = query.from_user.username
+            
+            # Check if user is registered
+            registration_response = requests.get(f'{BACK_URL}/accounts/filter-users/?username={username}')
+            if registration_response.status_code != 200:
+                await query.edit_message_text(
+                    text="You need to register first before playing. Use the /register command.",
+                    reply_markup=instructions_options_keyboard()
+                )
+                return
 
-        if query.data == 'play':
+            # Check user's balance
+            balance_response = requests.get(f'{BACK_URL}/payments/balance?username={username}')
+            balance = balance_response.json().get('balance', 0)
+            bet_amount = int(query.data)
+            print("balance = ",balance)
+            print("bet_amount = ",bet_amount)
+            print("registration_response = ",registration_response)
+            print("balance_response = ",balance_response)
+            
+            if balance < bet_amount:
+                await query.edit_message_text(
+                    text=f"Insufficient balance. Your current balance is {balance} ETB. Please deposit more to play.",
+                    reply_markup=instructions_options_keyboard()
+                )
+                return
+
+            player_id = query.from_user.id
+            web_app_url = (
+                f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={balance}"
+            )
+
+        if query.data == 'play' :
             await query.edit_message_text(
                 text="Choose a play option:",
                 reply_markup=play_options_keyboard()
@@ -202,7 +234,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'check_balance':
             username = query.from_user.username
-            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json()[0].get('balance')
+            print("username = ",username)
+            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get('balance',0)
+            print("balance = ",balance)
             
             await query.edit_message_text(text=f"Your balance is {balance} ETB.")
 
