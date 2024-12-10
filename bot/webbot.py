@@ -105,7 +105,7 @@ def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
 def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                InlineKeyboardButton("Adiss pay", callback_data='withdraw_adiss'),
+                InlineKeyboardButton("Adiss pay", callback_data='withdraw_virtual'),
                  InlineKeyboardButton("Manual", callback_data='withdraw_manual')
                  ],
                  [
@@ -311,9 +311,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
-        elif query.data == 'withdraw_adiss':
+        elif query.data == 'withdraw_virtual':
             print("before entering withdraw_amount")
-            await query.edit_message_text(text="Please enter the amount you want to withdraw:")
             return WITHDRAW_AMOUNT  # Need to define WITHDRAW_AMOUNT = range(1) at the top with other states
         
          
