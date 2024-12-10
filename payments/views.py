@@ -1,15 +1,20 @@
-# from django.shortcuts import render
-# from django.http import JsonResponse
-# from accounts.models import TelegramUser
-# from .models import Wallet
-# # Create your views here.
+from django.shortcuts import render
+from django.http import JsonResponse
+from accounts.models import TelegramUser
+from .models import Wallet
+# Create your views here.
 
+import math
 
-# def pay_with_chapa(request):
-#     context = {}
-#     return render(request,"payments/index.html",context)
-
-# def get_balance(request):
-#     username = request.GET.get('username')
-#     balance = Wallet.objects.filter(user__username=username).first().balance
-#     return JsonResponse({'balance': balance})
+def get_balance(request):
+    username = request.GET.get('username')
+   
+    try:
+        telegram_user = TelegramUser.objects.filter(username=username).first()
+        wallet = Wallet.objects.get(user=telegram_user)
+        return JsonResponse({
+            'balance': float(round(wallet.balance, 2) )
+        })
+    except (TelegramUser.DoesNotExist, Wallet.DoesNotExist):
+        return JsonResponse({'error': 'Wallet not found'}, status=404)
+    

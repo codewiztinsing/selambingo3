@@ -201,7 +201,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
         elif query.data == 'check_balance':
-            await query.edit_message_text(text="Your balance is 0 ETB.")
+            username = query.from_user.username
+            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json()[0].get('balance')
+            
+            await query.edit_message_text(text=f"Your balance is {balance} ETB.")
 
         elif query.data in ['10','20', '50','100']:
 
