@@ -276,11 +276,27 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await query.edit_message_text('Welcome! Use /register to start the registration process.')
           
         elif query.data == 'menu':
-            await start(update, context) 
+            keyboard = [
+                [InlineKeyboardButton("Play Game", callback_data='play'),
+                 InlineKeyboardButton("Check Balance", callback_data='check_balance')],
+                [InlineKeyboardButton("Deposit", callback_data='deposit'),
+                 InlineKeyboardButton("Register", callback_data='register')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("Welcome to Selam Bingo! Please select an option:", reply_markup=reply_markup)
+            
             
  
         else:
-            await start(update, context) 
+
+            keyboard = [
+                [InlineKeyboardButton("Play Game", callback_data='play'),
+                 InlineKeyboardButton("Check Balance", callback_data='check_balance')],
+                [InlineKeyboardButton("Deposit", callback_data='deposit'),
+                 InlineKeyboardButton("Register", callback_data='register')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("Welcome to Selam Bingo! Please select an option:", reply_markup=reply_markup)
     except Exception as e:
         logger.error(f"Error handling query: {query.data} - {e}")
         await query.edit_message_text(text="An error occurred. Please try again.")
