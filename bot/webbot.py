@@ -56,7 +56,7 @@ def generate_nonce(length=64):
 
 # Define conversation states
 DEPOSIT_AMOUNT = range(1)
-WITHDRAW_AMOUNT = range(2)
+WITHDRAW_AMOUNT,WITHDRAW_VIRTUAL = range(2)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -519,7 +519,7 @@ def main() -> None:
     wihtdraw_conversation_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(button)],
         states={
-            WITHDRAW_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)],
+            WITHDRAW_VIRTUAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)],
         },
         fallbacks=[],
     )
