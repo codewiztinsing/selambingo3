@@ -97,3 +97,10 @@ def win(request):
         }, status=500)
     return JsonResponse({'message': 'Payment successful'})
 
+
+def withdraw(request):
+    data = json.loads(request.body)
+    username = data.get('username')
+    amount = data.get('amount')
+    return JsonResponse({'message': 'Withdrawal successful'})
+

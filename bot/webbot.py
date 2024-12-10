@@ -101,10 +101,30 @@ def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     return reply_markup
 
 
+def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
+    keyboard = [
+                [
+                InlineKeyboardButton("Adiss pay", callback_data='withdraw_adiss'),
+                 InlineKeyboardButton("Manual", callback_data='withdraw_manual')
+                 ],
+                 [
+                InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')
+ 
+                 ]
+            ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    return reply_markup
+
 
 async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = deposit_opitions_keyboard()  # Create the inline keyboard
     await update.message.reply_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
+
+
+async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    reply_markup = withdraw_opitions_keyboard()  # Create the inline keyboard
+    await update.message.reply_text("Choose a withdraw method", reply_markup=reply_markup)
+
 
 
 async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -269,6 +289,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'adiss':
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
+        
+        elif query.data == 'with_adiss':
+            username = query.from_user.username
+            msg = requests.get(f'{BACK_URL}/payments/withdraw?username={username}')
+            await query.edit_message_text(text=msg.json().get('message'))
+        
         
         elif query.data == "register":
            
