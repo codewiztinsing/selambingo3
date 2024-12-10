@@ -245,7 +245,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             player_id = query.from_user.id
             username = query.from_user.username
             bet_amount = query.data
-            wallet_amount = 120 
+            wallet_amount = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get('balance',0)
             print("data = ",query.data)
 
             web_app_url = (
@@ -337,8 +337,8 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "items": "single bot transcation",
             "phoneNumber": phone,
             "usernmae": username,
-            "telecomOperator": "ethio_telecom",
-            "image": "https://images.app.goo.gl/pYmev5W8J5AXpBin7"
+            "telecomOperator": "ethio_telecom"
+            
         },
         "phone_number": phone,
         "session_expired": "5000",
