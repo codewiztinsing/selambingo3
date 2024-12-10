@@ -123,6 +123,7 @@ async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = withdraw_opitions_keyboard()  # Create the inline keyboard
+    print("reply_markup = ","withdraw_opitions_keyboard()")
     await update.message.reply_text("Choose a withdraw method", reply_markup=reply_markup)
 
 
@@ -292,7 +293,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
         elif query.data == 'withdraw_adiss':
             username = query.from_user.username
+            print("username = ",username)
             msg = requests.get(f'{BACK_URL}/payments/withdraw?username={username}')
+            print("msg = ",msg)
+            
             await query.edit_message_text(text=msg.json().get('message'))
         
         
