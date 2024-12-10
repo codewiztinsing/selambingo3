@@ -56,6 +56,7 @@ def generate_nonce(length=64):
 
 # Define conversation states
 DEPOSIT_AMOUNT = range(1)
+WITHDRAW_AMOUNT = range(1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -115,6 +116,23 @@ def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
     reply_markup = InlineKeyboardMarkup(keyboard)
     return reply_markup
 
+def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    amount = float(update.message.text)
+    query = update.callback_query
+    username = query.from_user.username
+    print("username = ",username)
+    # Call withdraw endpoint
+    try:
+        response = requests.post(f'{BACK_URL}/payments/withdraw', json={
+            'username': username,
+            'amount': amount
+        })
+        response_data = response.json()
+        print("response_data = ", response_data)
+    except Exception as e:
+        print(f"Error calling withdraw endpoint: {e}")
+    print("amount = ",amount)
+    return ConversationHandler.END
 
 async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = deposit_opitions_keyboard()  # Create the inline keyboard
@@ -293,11 +311,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
         elif query.data == 'withdraw_adiss':
             username = query.from_user.username
-            print("username = ",username)
-            msg = requests.get(f'{BACK_URL}/payments/withdraw?username={username}')
-            print("msg = ",msg)
-            
-            await query.edit_message_text(text=msg.json().get('message'))
+            await query.edit_message_text(text="Please enter the amount you want to withdraw:")
+            return WITHDRAW_AMOUNT  # Need to define WITHDRAW_AMOUNT = range(1) at the top with other states
+        
+         
         
         
         elif query.data == "register":
@@ -500,6 +517,13 @@ def main() -> None:
         },
         fallbacks=[],
     )
+    wihtdraw_conversation_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(button)],
+        states={
+            WITHDRAW_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)],
+        },
+        fallbacks=[],
+    )
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('play', play_command))
@@ -508,6 +532,7 @@ def main() -> None:
     application.add_handler(CommandHandler('support', support_command))
     application.add_handler(CommandHandler('withdraw', withdraw_command))
     application.add_handler(deposit_conversation_handler)
+    application.add_handler(wihtdraw_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
