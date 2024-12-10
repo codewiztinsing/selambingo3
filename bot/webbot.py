@@ -56,7 +56,7 @@ def generate_nonce(length=64):
 
 # Define conversation states
 DEPOSIT_AMOUNT = range(1)
-WITHDRAW_AMOUNT,WITHDRAW_VIRTUAL = range(1,2)
+WITHDRAW_AMOUNT,WITHDRAW_VIRTUAL = range(1,3)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
