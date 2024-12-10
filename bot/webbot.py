@@ -118,19 +118,19 @@ def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
 
 def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     amount = float(update.message.text)
-    query = update.callback_query
-    username = query.from_user.username
-    print("username = ",username)
-    # Call withdraw endpoint
+    username = update.message.from_user.username
     try:
-        response = requests.post(f'{BACK_URL}/payments/withdraw', json={
+        response = requests.post(f'{BACK_URL}/payments/withdraw/', json={
             'username': username,
             'amount': amount
         })
-        response_data = response.json()
-        print("response_data = ", response_data)
+        if response.status_code == 200:
+            update.message.reply_text("Withdrawal request submitted successfully!")
+        else:
+            update.message.reply_text("Error processing withdrawal. Please try again later.")
     except Exception as e:
-        print(f"Error calling withdraw endpoint: {e}")
+        logger.error(f"Error processing withdrawal: {e}")
+        update.message.reply_text("An error occurred. Please try again later.")
     print("amount = ",amount)
     return ConversationHandler.END
 
@@ -312,6 +312,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'withdraw_adiss':
             username = query.from_user.username
             await query.edit_message_text(text="Please enter the amount you want to withdraw:")
+            print("before entering withdraw_amount")
+           
             return WITHDRAW_AMOUNT  # Need to define WITHDRAW_AMOUNT = range(1) at the top with other states
         
          
