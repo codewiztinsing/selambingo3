@@ -118,6 +118,7 @@ def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
 
 def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     amount = float(update.message.text)
+
     print("amount = ",amount)
     username = update.message.from_user.username
     print("username = ",username)
@@ -143,7 +144,6 @@ async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = withdraw_opitions_keyboard()  # Create the inline keyboard
-    print("reply_markup = ","withdraw_opitions_keyboard()")
     await update.message.reply_text("Choose a withdraw method", reply_markup=reply_markup)
 
 
@@ -313,6 +313,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
         elif query.data == 'withdraw_adiss':
             print("before entering withdraw_amount")
+            await query.edit_message_text(text="Please enter the amount you want to withdraw:")
             return WITHDRAW_AMOUNT  # Need to define WITHDRAW_AMOUNT = range(1) at the top with other states
         
          
