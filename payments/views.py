@@ -24,11 +24,13 @@ def get_balance(request):
 def success(request):
     
     # Get payment data from POST request
-    data = request.POST
+    data = request.body
+    data = json.loads(data)
+
     print("data = ",data)
-    username = data.get('username')
+    username = data.get('order_detail').get('username')
     print("username = ",username)
-    amount = float(data.get('amount', 0))
+    amount = float(data.get('order_detail').get('amount', 0))
     print("amount = ",amount)
 
     try:

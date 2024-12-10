@@ -193,7 +193,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             if balance < bet_amount:
                 await query.edit_message_text(
                     text=f"Insufficient balance. Your current balance is {balance} ETB. Please deposit more to play.",
-                    reply_markup=instructions_options_keyboard()
+                    reply_markup=deposit_opitions_keyboard()
                 )
                 return
 
