@@ -118,7 +118,9 @@ def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
 
 def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     amount = float(update.message.text)
+    print("amount = ",amount)
     username = update.message.from_user.username
+    print("username = ",username)
     try:
         response = requests.post(f'{BACK_URL}/payments/withdraw/', json={
             'username': username,
