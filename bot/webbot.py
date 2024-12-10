@@ -307,8 +307,8 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         data = {
         "redirect_url": "https://api.selambingo.com/",
         "cancel_url": "https://api.selambingo.com/cancel",
-        "success_url": "https://api.selambingo.com/success/",
-        "error_url": "https://api.selambingo.com/error/",
+        "success_url": "https://api.selambingo.com/payments/success/",
+        "error_url": "https://api.selambingo.com/payments/error/",
         "order_reason": "payament for selam bingo bot",
         "currency": "ETB",
         "email": f"{first_name}@gmail.com",
