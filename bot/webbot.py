@@ -290,7 +290,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
-        elif query.data == 'with_adiss':
+        elif query.data == 'withdraw_adiss':
             username = query.from_user.username
             msg = requests.get(f'{BACK_URL}/payments/withdraw?username={username}')
             await query.edit_message_text(text=msg.json().get('message'))
