@@ -310,10 +310,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
         elif query.data == 'withdraw_adiss':
-            username = query.from_user.username
-            await query.edit_message_text(text="Please enter the amount you want to withdraw:")
-            print("before entering withdraw_amount")
-           
             return WITHDRAW_AMOUNT  # Need to define WITHDRAW_AMOUNT = range(1) at the top with other states
         
          
