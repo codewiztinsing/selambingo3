@@ -502,6 +502,7 @@ def main() -> None:
     application.add_handler(CommandHandler("deposit",deposit_command))
     application.add_handler(CommandHandler('instructions', instruction_command))
     application.add_handler(CommandHandler('support', support_command))
+    application.add_handler(CommandHandler('withdraw', withdraw_command))
     application.add_handler(deposit_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
