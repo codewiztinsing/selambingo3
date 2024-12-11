@@ -82,7 +82,7 @@ def win(request):
         print("created = ",created)
         
         # Add winning amount to wallet balance
-        wallet.balance += amount
+        wallet.balance += float(amount)
         wallet.save()
 
         return JsonResponse({
