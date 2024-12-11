@@ -293,6 +293,19 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             print("username = ",username)
             balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get('balance',0)
             print("balance = ",balance)
+
+            # Create payment summary with user details
+            payment_summary = (
+                f"👤 Username: @{username}\n"
+                f"💰 Wallet Balance: {balance:.2f} ETB\n"
+                "------------------------\n"
+                "💳 Payment Methods Available:\n"
+                "• Adiss Pay\n" 
+                "• Manual Transfer\n\n"
+                "Use /deposit to add funds"
+            )
+            await query.edit_message_text(text=payment_summary)
+            return
             
             await query.edit_message_text(text=f"Your balance is {balance} ETB.")
 
