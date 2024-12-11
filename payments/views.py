@@ -104,3 +104,17 @@ def withdraw(request):
     amount = data.get('amount')
     return JsonResponse({'message': 'Withdrawal successful'})
 
+def loss(request):
+    data = json.loads(request.body)
+    username = data.get('username')
+    amount = data.get('amount')
+    try:
+        telegram_user = TelegramUser.objects.filter(username=username).first()
+        wallet = Wallet.objects.get(user=telegram_user)
+        wallet.balance -= float(amount)
+        wallet.save()
+        return JsonResponse({'message': 'Loss amount added successfully'})
+    except Exception as e:
+        return JsonResponse({'message': str(e)}, status=500)
+
+
