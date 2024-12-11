@@ -255,6 +255,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 ]])
             )
 
+            return ConversationHandler.END
+
 
         if query.data == 'play' :
             await query.edit_message_text(
