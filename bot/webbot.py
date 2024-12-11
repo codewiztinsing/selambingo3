@@ -240,6 +240,21 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             web_app_url = (
                 f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={balance}"
             )
+        if query.data == 'play_demo':
+            player_id = query.from_user.id
+            username = query.from_user.username
+            bet_amount = 0  # Demo game has no bet amount
+            wallet_amount = 1000  # Demo wallet amount
+            web_app_url = (
+                f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}&demo=true"
+            )
+            await query.edit_message_text(
+                text=f"Starting demo game...",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("Play Demo", web_app=WebAppInfo(url=web_app_url))
+                ]])
+            )
+
 
         if query.data == 'play' :
             await query.edit_message_text(
