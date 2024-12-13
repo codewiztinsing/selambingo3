@@ -72,7 +72,9 @@ def win(request):
     # Get payment data from POST request
     data = json.loads(request.body)
     username = data.get('username')
-    amount = data.get('amount')
+    amount = data.get('amount',0)
+ 
+
     try:
         # Get or create user wallet
         telegram_user = TelegramUser.objects.filter(username=username).first()
