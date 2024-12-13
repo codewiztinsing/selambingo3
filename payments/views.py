@@ -72,7 +72,7 @@ def win(request):
     # Get payment data from POST request
     data = json.loads(request.body)
     username = data.get('username')
-    amount = data.get('amount',0)
+    amount = data.get('amount',0.0)
  
 
     try:
@@ -111,7 +111,7 @@ def withdraw(request):
 def loss(request):
     data = json.loads(request.body)
     username = data.get('username')
-    amount = data.get('amount')
+    amount = data.get('amount',0.0) 
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
         wallet = Wallet.objects.filter(user=telegram_user).first()
