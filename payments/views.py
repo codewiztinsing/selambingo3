@@ -112,10 +112,10 @@ def loss(request):
     amount = data.get('amount')
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
-        wallet = Wallet.objects.get(user=telegram_user)
+        wallet = Wallet.objects.filter(user=telegram_user).first()
         wallet.balance -= float(amount)
         wallet.save()
-        return JsonResponse({'message': 'Loss amount added successfully'})
+        return JsonResponse({'message': 'Loss done'})
     except Exception as e:
         return JsonResponse({'message': str(e)}, status=500)
 
