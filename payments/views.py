@@ -111,6 +111,8 @@ def withdraw(request):
 def loss(request):
     data = json.loads(request.body)
     username = data.get('username')
+    if username == "":
+        return JsonResponse({'message': 'Username is required'}, status=400)
     amount = data.get('amount',0.0) 
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
