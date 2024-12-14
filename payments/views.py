@@ -71,7 +71,9 @@ def error(request):
 def win(request):
     # Get payment data from POST request
     data = json.loads(request.body)
-    username = data.get('username')
+    username = data.get('username','')
+    if username == "":
+        return JsonResponse({'message': 'Username is required'}, status=400)
     amount = data.get('amount',0.0)
  
 
@@ -110,9 +112,10 @@ def withdraw(request):
 @csrf_exempt
 def loss(request):
     data = json.loads(request.body)
-    username = data.get('username')
+    username = data.get('username','')
     if username == "":
         return JsonResponse({'message': 'Username is required'}, status=400)
+    
     amount = data.get('amount',0.0) 
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
