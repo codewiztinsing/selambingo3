@@ -5,6 +5,9 @@ from .models import Wallet
 from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
+
+# Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZU51bWJlciI6IjI1MTk0Mzk0NjAzNCIsInVzZXJfaWQiOjQ5LCJleHAiOjE3MzUxMjI0NzF9.iVD899bRHtAMUHQkf4_E0kSXeLCIY0cuAWbSNL4zdvM
+
 import math
 import json
 @csrf_exempt
