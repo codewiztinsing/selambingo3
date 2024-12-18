@@ -16,9 +16,13 @@ def get_balance(request):
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
         wallet = Wallet.objects.get(user=telegram_user)
-        return JsonResponse({
-            'balance': float(round(wallet.balance, 2) )
-        })
+        if wallet.balance != None:
+           
+            return JsonResponse({
+                'balance': float(round(wallet.balance, 2) )
+            })
+        else:
+            return JsonResponse({'error': 'Wallet balance is negative'}, status=400)    
     except (TelegramUser.DoesNotExist, Wallet.DoesNotExist):
         return JsonResponse({'error': 'Wallet not found'}, status=404)
     
