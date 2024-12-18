@@ -9,7 +9,9 @@ import math
 import json
 @csrf_exempt
 def get_balance(request):
-    username = request.GET.get('username')
+    username = request.GET.get('username',"")
+    if username == "":
+        return JsonResponse({'error': 'Username is required'}, status=400)
    
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
