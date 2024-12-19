@@ -151,7 +151,9 @@ async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     username = update.effective_user.username
     try:
-        balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json()[0].get('balance')
+        balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get('results',[]).get("results",[])
+        balance = balance['results'][0]['totalTransactionAmount']
+        print("balance = ",balance)
         print("balance = ",balance)
     except Exception as e:
         print(f"Error getting wallet balance: {e}")
@@ -290,8 +292,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'check_balance':
             username = query.from_user.username
-            print("username = ",username)
-            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get('balance',0)
+            print("username  = ",username)
+            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
             print("balance = ",balance)
             first_name = query.from_user.first_name
             last_name = query.from_user.last_name
