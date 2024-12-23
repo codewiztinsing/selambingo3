@@ -30,8 +30,11 @@ class FilterUsersByPhoneView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         username = request.query_params.get('username', None)
         if username:
-            users = TelegramUser.objects.filter(username=username)
-            print("users=   ",users)
-            serializer = self.get_serializer(users, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({"detail": "username  not provided."}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = TelegramUser.objects.get(username=username)
+                serializer = self.get_serializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except TelegramUser.DoesNotExist:
+                return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Username not provided."}, status=status.HTTP_400_BAD_REQUEST)
+       

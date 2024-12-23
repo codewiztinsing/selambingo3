@@ -139,8 +139,6 @@ async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_
 
     response = requests.post(f"{BACK_URL}/accounts/register/", data=user_data)
 
-    print("response = ",response)
-
     if response.status_code == 201:  # Assume 201 means success
         await update.message.reply_text("Registration completed successfully!")
     else:

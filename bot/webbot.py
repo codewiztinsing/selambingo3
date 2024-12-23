@@ -397,7 +397,8 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     username = update.message.from_user.username
     phone = None
     if update.message.from_user:
-        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()[0].get('phone')
+        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()
+        phone = phone.get('phone')
         print("phone = ",phone)
         # phone = "251921309013"
 
