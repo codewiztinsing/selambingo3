@@ -115,7 +115,7 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
             'phone': user_data.get('phone',"botphone")
         })
 
-        username = user_data.get("username","botuser")
+        username = user_data.get("username",first_name)
         phone = user_data.get('phone',"botphone")
         password = "123456"
         confirm_password ="123456"
