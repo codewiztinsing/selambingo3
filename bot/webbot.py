@@ -398,9 +398,18 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     phone = None
     if update.message.from_user:
         phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()
+        if not phone:
+            keyboard = [
+                [InlineKeyboardButton("Register", callback_data='register')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(
+                "You need to register first before making a deposit. Please click Register below.",
+                reply_markup=reply_markup
+            )
+            return ConversationHandler.END
         phone = phone.get('phone')
-        print("phone = ",phone)
-        # phone = "251921309013"
+        
 
     logger.info(f"Received deposit amount: {amount}")
 
