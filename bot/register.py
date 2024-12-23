@@ -144,7 +144,7 @@ async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_
     if response.status_code == 201:  # Assume 201 means success
         await update.message.reply_text("Registration completed successfully!")
     else:
-        print("response.json()=   ",response.json())
+       
         await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
 
     # del user_data[user_id]  # Clear user data after registration
