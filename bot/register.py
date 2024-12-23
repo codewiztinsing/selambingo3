@@ -128,7 +128,7 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Please click the button below to proceed to the next step:", reply_markup=play_options_keyboard())
         else:
         
-            await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
+            await update.message.reply_text(f"Registration failed")
 
       
         
