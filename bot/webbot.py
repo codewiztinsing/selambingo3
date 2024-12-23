@@ -411,7 +411,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         logger.info(f"Received deposit amount: {amount}")
 
         data = {
-        "redirect_url": "https://api.selambingo.com/",
+        "redirect_url": "https://api.selambingo.com/done/",
         "cancel_url": "https://api.selambingo.com/cancel",
         "success_url": "https://api.selambingo.com/payments/success/",
         "error_url": "https://api.selambingo.com/payments/error/",
