@@ -323,7 +323,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data in ['10','20', '50','100']:
 
             player_id = query.from_user.id
-            username = query.from_user.username
+            username = query.from_user.username or query.from_user.first_name
             bet_amount = query.data
         
             wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
