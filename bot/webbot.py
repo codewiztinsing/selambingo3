@@ -225,8 +225,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 return
 
             # Check user's balance
-            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
-
+            # balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
+            balance = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
             bet_amount = int(query.data)
           
             
@@ -325,7 +325,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             player_id = query.from_user.id
             username = query.from_user.username
             bet_amount = query.data
-            wallet_amount = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get('balance',0)
+        
+            wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
             print("data = ",query.data)
 
             web_app_url = (

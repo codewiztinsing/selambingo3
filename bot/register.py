@@ -76,12 +76,13 @@ async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data["username"] = username
 
     url  = f"{BACK_URL}/accounts/filter-users/?username={username}"
-    user_exists  = requests.get(url).json()
-    if len(user_exists) > 0:
+    user_exists  = requests.get(url)
+    if user_exists.status_code == 200:
+        user_exists = user_exists.json()
         await update.message.reply_text(
-                text="You are already registred,please start playing:",
-                reply_markup=play_options_keyboard()
-            )
+                    text="You are already registred,please start playing:",
+                    reply_markup=play_options_keyboard()
+                )
     else:
         await update.message.reply_text(f"Welcome! Your username is: {username}. Please share your phone number.")
 
