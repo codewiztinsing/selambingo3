@@ -292,17 +292,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'check_balance':
             
             username = query.from_user.username
-            print("username  = ",username)
-            addis_balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
-            wallet = requests.get(f'{BACK_URL}/payments/wallet/{username}').json()
-            selam_balance = wallet.get("balance",0)
-            if addis_balance > wallet:
-                balance = addis_balance
-            else:
-                balance = wallet
-            print("wallet = ",wallet)
             first_name = query.from_user.first_name
             last_name = query.from_user.last_name
+            # Get wallet balance from API
+            response = requests.get(f'{BACK_URL}/payments/wallet/{username}/')
+            balance = response.json().get('balance', 0)
            
 
             # Create payment summary with user details
