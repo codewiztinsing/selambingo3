@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import get_balance,success,error,win,withdraw,loss
+from .views import get_balance,success,error,win,withdraw,loss,get_wallet
 
 urlpatterns = [
     # path('deposit/', pay_with_chapa,name="pay-with-chapa"),
@@ -9,6 +9,7 @@ urlpatterns = [
     path('loss/', loss,name="loss"),
     path('error/', error,name="error"),
     path('withdraw/', withdraw,name="withdraw"),
+    path('wallet/<str:username>/', get_wallet,name="get-wallet"),
 
 ]
 

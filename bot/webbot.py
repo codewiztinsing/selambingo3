@@ -38,9 +38,11 @@ logger = logging.getLogger(__name__)
 
 BACK_URL = config('BACK_URL')
 BOT_TOKEN = config('BOT_TOKEN')
-
+TEST_ADISS_SECRET = config('TEST_ADISS_SECRET')
 
 apiKey=  config('ADISS_SECRET')
+test_apiKey = config('TEST_ADISS_SECRET')
+
 				
 headers = {
    "Auth":apiKey
@@ -223,13 +225,10 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 return
 
             # Check user's balance
-            balance_response = requests.get(f'{BACK_URL}/payments/balance?username={username}')
-            balance = balance_response.json().get('balance', 0)
+            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
+
             bet_amount = int(query.data)
-            print("balance = ",balance)
-            print("bet_amount = ",bet_amount)
-            print("registration_response = ",registration_response)
-            print("balance_response = ",balance_response)
+          
             
             if balance < bet_amount:
                 await query.edit_message_text(
@@ -291,10 +290,17 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
         elif query.data == 'check_balance':
+            
             username = query.from_user.username
             print("username  = ",username)
-            balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
-            print("balance = ",balance)
+            addis_balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
+            wallet = requests.get(f'{BACK_URL}/payments/wallet/{username}').json()
+            selam_balance = wallet.get("balance",0)
+            if addis_balance > wallet:
+                balance = addis_balance
+            else:
+                balance = wallet
+            print("wallet = ",wallet)
             first_name = query.from_user.first_name
             last_name = query.from_user.last_name
            
@@ -398,6 +404,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if update.message.from_user:
         phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()[0].get('phone')
         print("phone = ",phone)
+        # phone = "251921309013"
 
     logger.info(f"Received deposit amount: {amount}")
 
@@ -423,7 +430,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "description": "the transcationt to deposit amount in my bot wallet",
             "items": "single bot transcation",
             "phoneNumber": phone,
-            "usernmae": username,
+            "username": username,
             "telecomOperator": "ethio_telecom"
             
         },
@@ -434,12 +441,13 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         }
     
         addispay_checkout_api_url="https://api.addispay.et/checkout-api/v1/create-order"
-
         payload = {
         "data":data,
         "message":"test message"
         }
         response = requests.post(addispay_checkout_api_url, json=payload, headers=headers)
+    
+        print("response = ",response)
         checkout_url = None
         if response.status_code ==200:
             response_content = response.json()
