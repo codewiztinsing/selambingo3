@@ -22,14 +22,10 @@ def get_balance(request):
    
     try:
         telegram_user = TelegramUser.objects.filter(username=username).first()
-        phone =  "251921309013" # telegram_user.phone
-        response = requests.get(f"https://uat.api.addispay.et/merchant/customer/transactions?phone={phone}",headers=headers)
-        print("response = ",response.text)
-    
-        wallet = response.json()
-        print("wallet = ",wallet)
+        wallet = Wallet.objects.filter(user=telegram_user).first()
         if wallet != None:
-            return JsonResponse({'balance': wallet.get('data')})
+            return JsonResponse({'balance': wallet.balance})
+        else:
             return JsonResponse({'error': 'Wallet balance is negative'}, status=400)    
     except (TelegramUser.DoesNotExist, Wallet.DoesNotExist):
         return JsonResponse({'error': 'Wallet not found'}, status=404)
@@ -39,7 +35,7 @@ def get_balance(request):
 def get_wallet(request,username):
     telegram_user = TelegramUser.objects.filter(username=username).first()
     wallet = Wallet.objects.filter(user=telegram_user).first()
-    if wallet is None:
+    if wallet is not None:
         wallet = wallet.balance
         return JsonResponse({'balance': wallet})
     else:
