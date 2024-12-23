@@ -266,10 +266,18 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             )
 
         elif query.data == 'instructions':
+            web_app_url = "https://api.selambingo.com/insturction/"
             await query.edit_message_text(
-                text="Choose a play option:",
-                reply_markup=instructions_options_keyboard()
+                text="Game Instructions",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("View Instructions", web_app=WebAppInfo(url=web_app_url))
+                ]])
             )
+
+            # await query.edit_message_text(
+            #     text="Choose a play option:",
+            #     reply_markup=instructions_options_keyboard()
+            # )
 
         elif query.data == 'contact_support':
             await query.edit_message_text(

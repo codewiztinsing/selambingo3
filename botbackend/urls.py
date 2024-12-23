@@ -18,12 +18,16 @@ def landing(request):
 #        pass
 #    return HttpResponse("done")
 
+def instruction(request):
+    return render(request,"instruction.html")
+
   
    
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("",include("bot.urls")),
     path("done/",landing),
+    path("insturction/",instruction),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
 
