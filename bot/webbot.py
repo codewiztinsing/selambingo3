@@ -398,7 +398,8 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     phone = None
     if update.message.from_user:
         phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()
-        if not phone:
+        phone = phone.get('phone',None)
+        if phone is None:
             keyboard = [
                 [InlineKeyboardButton("Register", callback_data='register')]
             ]
@@ -408,7 +409,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 reply_markup=reply_markup
             )
             return ConversationHandler.END
-        phone = phone.get('phone')
+        
         
 
     logger.info(f"Received deposit amount: {amount}")
