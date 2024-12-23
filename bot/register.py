@@ -102,13 +102,40 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.contact:
         phone_number = update.message.contact.phone_number
         user_data["phone"] = phone_number
+
+        user_id = update.message.from_user.id
+        first_name = update.message.from_user.first_name,
+        last_name = update.message.from_user.last_name
+        confirm_password= update.message.text
+        user_data.update({'password_confirm':confirm_password})
+        user_data.update({
+            'telegram_id': update.message.from_user.id
+        })
+        user_data.update({
+            'phone': user_data.get('phone',"botphone")
+        })
+
+        username = user_data.get("username","botuser")
+        phone = user_data.get('phone',"botphone")
+        password = "123456"
+        confirm_password ="123456"
+        user_data.update({'password':password})
+        user_data.update({'password_confirm':confirm_password})
+        response = requests.post(f"{BACK_URL}/accounts/register/", data=user_data)
+
+        if response.status_code == 201:  # Assume 201 means success
+            await update.message.reply_text("Registration completed successfully!")
+        else:
+        
+            await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
+
       
         
-        await update.message.reply_text(f"Plase Enter your  Password")
-        return PASSWORD  # Proceed to the next state (EMAIL)
-    else:
-        await update.message.reply_text("Please use the button to share your phone number.")
-        return PHONE  # Stay in the current state (PHONE) until a contact is received
+    #     await update.message.reply_text(f"Plase Enter your  Password")
+    #     return PASSWORD  # Proceed to the next state (EMAIL)
+    # else:
+    #     await update.message.reply_text("Please use the button to share your phone number.")
+    #     return PHONE  # Stay in the current state (PHONE) until a contact is received
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Registration canceled.")
@@ -145,5 +172,3 @@ async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_
     else:
        
         await update.message.reply_text(f"Registration failed: {response.json().get('error', 'Unknown error')}")
-
-    # del user_data[user_id]  # Clear user data after registration
