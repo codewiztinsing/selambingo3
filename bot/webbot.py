@@ -307,7 +307,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'play_instruction':
             chat_id = update.effective_chat.id
             local_video_path = './assets/play.mp4'
-            caption = 'deposit instruction!'
+            caption = 'play instruction!'
 
             with open(local_video_path, 'rb') as video_file:
                 await context.bot.send_video(chat_id=chat_id, video=video_file, caption=caption)

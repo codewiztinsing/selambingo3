@@ -6,17 +6,8 @@ import asyncio
 import webview 
 
 def landing(request):
-    try:
-        asyncio.run(webview.notify_telegram_user("Payment method setup completed successfully"))
-    except Exception as e:
-        print(f"Error notifying user: {e}")
-    return HttpResponse("done")
-
-#    try:
-#        webview.destroy_window()
-#    except:
-#        pass
-#    return HttpResponse("done")
+    return render(request,"landing.html")
+  
 
 def instruction(request):
     return render(request,"instruction.html")

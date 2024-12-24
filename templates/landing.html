@@ -63,21 +63,17 @@
 <body>
     <div class="container">
         <h1>Payment Successful</h1>
-        <p class="message">Thank you for your payment! You can now proceed to the next step.</p>
-        <a href="https://t.me/@SelamBingo_bot" target="_blank">Go to Selame Bingo</a>
-        <div class="footer">
-            <p>If you need assistance, feel free to contact support.</p>
-        </div>
+       
     </div>
 
     <script>
-        // Close Telegram WebApp
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.close();
-        }
+        // Set timeout to close window after 5 minutes
+        setTimeout(function() {
+            console.log("window closed");
+            window.close();
+        }, 5  * 1000); // 5 minutes in milliseconds
 
-        // Show success alert
-        alert("Payment completed successfully!");
+        
     </script>
 </body>
 </html>
