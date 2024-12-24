@@ -86,11 +86,20 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
+
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
+
+# PostgreSQL database driver package name: psycopg2
+# Install using pip:
+# pip install psycopg2
+# Or for binary version (recommended):
+# pip install psycopg2-binary
+
+# Note: psycopg2-binary is recommended for development/testing
+# For production environments, use psycopg2 package built from source
 
 
 REST_FRAMEWORK = {
