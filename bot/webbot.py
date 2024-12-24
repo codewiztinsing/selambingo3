@@ -245,7 +245,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             player_id = query.from_user.id
             username = query.from_user.username
             bet_amount = 0  # Demo game has no bet amount
-            wallet_amount = 1000  # Demo wallet amount
+            wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
             web_app_url = (
                 f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}&demo=true"
             )
@@ -299,6 +299,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data == 'deposit_instruction':
             chat_id = update.effective_chat.id
             local_video_path = './assets/deposit.mp4'
+            caption = 'deposit instruction!'
+
+            with open(local_video_path, 'rb') as video_file:
+                await context.bot.send_video(chat_id=chat_id, video=video_file, caption=caption)
+
+        elif query.data == 'play_instruction':
+            chat_id = update.effective_chat.id
+            local_video_path = './assets/play.mp4'
             caption = 'deposit instruction!'
 
             with open(local_video_path, 'rb') as video_file:
