@@ -76,38 +76,9 @@ def success(request):
 @csrf_exempt
 def error(request):
     data = json.loads(request.body)
-    # data =  { 
-    #         'session_uuid': '8d09c5e9-73b4-44b9-92d1-97d580edf5b1',
-    #           'addispay_transaction_id': 'ADP-ZZIHO1XRKS', 'third_party_transaction_ref': 'BLN4WCRV6Q', 
-    #           'total_amount': 30.3, 'paymnet_reason': 'Process service request successfully.', 
-    #           'payment_status': 'success', 
-    #           'order_id': 'selam_pay_W)=tX:Bg6TS#,a#F3(."w0S:(ej;{jMWyLsl==TR!FzFxzbmxbBqL)v2YZD[,:CF', 'nonce': 'ADP-ZZIHO1XRKS',
-    #          'order': {'items': 'single bot transcation', 'amount': 30.0, 'username': 'ThreeWaybetYourchoice', 'description': 'the transcationt to deposit amount in my bot wallet', 'phoneNumber': '251911992283', 'telecomOperator': 'ethio_telecom'}}
-
-    # Get username and amount from data
-    username = data.get('order').get('username', '')  # Note: keeping the typo from the data structure
-    amount = float(data.get('order').get('amount', 0))
-
-    try:
-        # Get or create user wallet
-        telegram_user = TelegramUser.objects.filter(username=username).first()
-        wallet, created = Wallet.objects.get_or_create(user=telegram_user)
-        
-        # Add payment amount to wallet balance
-        wallet.balance += amount
-        wallet.save()
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Payment processed successfully',
-            'new_balance': float(wallet.balance)
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': str(e)
-        }, status=500)
-   
+  
+    
+    return JsonResponse({'message': 'Payment Failed'})
   
 
 

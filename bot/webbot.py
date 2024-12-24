@@ -134,7 +134,7 @@ def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error processing withdrawal: {e}")
         update.message.reply_text("An error occurred. Please try again later.")
-    print("amount = ",amount)
+   
     return ConversationHandler.END
 
 async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
