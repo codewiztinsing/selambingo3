@@ -107,8 +107,7 @@ def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
 def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                InlineKeyboardButton("Adiss pay", callback_data='withdraw_virtual'),
-                 InlineKeyboardButton("Manual", callback_data='withdraw_manual')
+                InlineKeyboardButton("Adiss pay", callback_data='withdraw_virtual')
                  ],
                  [
                 InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')
@@ -228,6 +227,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             # balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
             balance = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
             bet_amount = int(query.data)
+            print("bet_amount = ",bet_amount)
           
             
             if balance < bet_amount:
@@ -376,9 +376,45 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
         elif query.data == 'withdraw_virtual':
-            print("before entering withdraw_amount")
-            return WITHDRAW_AMOUNT  # Need to define WITHDRAW_AMOUNT = range(1) at the top with other states
-        
+            username = query.from_user.username
+            print("username = ",username)
+            if not username:
+                await query.edit_message_text("Please set a Telegram username before withdrawing.")
+                return
+                
+            # Get user balance
+            balance_response = requests.get(f'{BACK_URL}/payments/wallet/{username}/')
+            if balance_response.status_code != 200:
+                await query.edit_message_text("An error occurred while fetching your balance. Please try again later.")
+                return
+            balance = balance_response.json().get('balance', 0)
+            print("balance = ",balance)
+            
+            
+            if balance <= 0:
+                await query.edit_message_text("You don't have sufficient balance to withdraw.")
+                return
+                
+            # Show withdrawal form
+            keyboard = [
+                [InlineKeyboardButton("Cancel", callback_data='menu')]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            withdrawal_text = (
+                "💰 *Withdrawal Request*\n\n"
+                f"Available Balance: {balance:.2f} ETB\n\n"
+                "Please enter the amount you want to withdraw.\n"
+                "Minimum withdrawal: 50 ETB\n"
+                "Maximum withdrawal: 10,000 ETB"
+            )
+            
+            await query.edit_message_text(
+                text=withdrawal_text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
+            return WITHDRAW_AMOUNT  # Move to withdrawal amount state
          
         
         
