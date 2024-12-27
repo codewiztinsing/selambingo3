@@ -52,6 +52,8 @@ def success(request):
     
     username = data.get('order').get('username', '')  # Note: keeping the typo from the data structure
     amount = float(data.get('order').get('amount', 0))
+    print("username from addispay = ",username)
+    print("amount from addispay = ",amount)
 
     try:
         # Get or create user wallet

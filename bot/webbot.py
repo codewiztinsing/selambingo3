@@ -58,7 +58,7 @@ def generate_nonce(length=64):
 
 # Define conversation states
 DEPOSIT_AMOUNT = range(1)
-WITHDRAW_AMOUNT = 2
+WITHDRAW_AMOUNT,WITHDRAW_AMOUNT_CONFIRM,WITHDRAW_AMOUNT_CANCEL = range(2,5)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
@@ -117,24 +117,150 @@ def withdraw_opitions_keyboard() -> InlineKeyboardMarkup:
     reply_markup = InlineKeyboardMarkup(keyboard)
     return reply_markup
 
-def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    
+async def withdraw_amount_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = update.message.from_user.username
+    amount = update.message.text
+    print("amount = ",amount)
     print("username = ",username)
     try:
-        response = requests.post(f'{BACK_URL}/payments/withdraw/', json={
-            'username': username,
-            'amount': 100
-        })
+        amount = float(amount)
+        
+        # Validate minimum withdrawal amount
+        if amount < 50:
+            await update.message.reply_text("Minimum withdrawal amount is 50 ETB. Please enter a larger amount.")
+            return WITHDRAW_AMOUNT
+            
+        # Validate maximum withdrawal amount    
+        if amount > 10000:
+            await update.message.reply_text("Maximum withdrawal amount is 10,000 ETB. Please enter a smaller amount.")
+            return WITHDRAW_AMOUNT
+
+        # Get user balance
+        balance_response = requests.get(f'{BACK_URL}/payments/wallet/{username}/')
+        if balance_response.status_code != 200:
+            await update.message.reply_text("An error occurred while fetching your balance. Please try again.")
+            return ConversationHandler.END
+            
+        balance = balance_response.json().get('balance', 0)
+
+        # Check if user has sufficient balance
+        if amount > balance:
+            await update.message.reply_text(f"Insufficient balance. Your current balance is {balance:.2f} ETB")
+            return WITHDRAW_AMOUNT
+
+
+        withdraw_url = "https://api.addispay.et/checkout-api/v1/payment/direct-b2c"
+        print("withdraw_url = ",withdraw_url)
+
+        telegram_id = update.message.from_user.id
+        # Get user's phone number from database
+        user_response = requests.get(f'{BACK_URL}/accounts/filter-users/?username={username}')
+        if user_response.status_code != 200:
+            await update.message.reply_text("Error retrieving user information. Please try again.")
+            return ConversationHandler.END
+            
+        phone = user_response.json().get('phone')
+        if not phone:
+            await update.message.reply_text("Phone number not found. Please update your profile.")
+            return ConversationHandler.END
+
+        print("phone = ",phone)
+       
+        amount = update.message.text
+        headers = {
+            "Auth":apiKey
+        }
+        # phone = "251911992283"
+        # amount = 1
+        payload = {
+            "data":{
+            "cancel_url":"https://t.me/SelamBingo_bot",
+            "success_ur":"https://t.me/SelamBingo_bot",
+            "error_url":"https://t.me/SelamBingo_bot",
+            "order_reason":"test",
+            "currency":"ETB",
+            "customer_name":username,
+            "phone_number":phone,
+            "nonce":"3ways_"+generate_nonce(64),
+            "payment_method":"telebirr",
+            "total_amount":f"{amount}",
+            "tx_ref":"3ways_"+generate_nonce(64)
+            
+            },
+            "message":"withdrawal request"
+            
+            }
+            
+        response = requests.post(withdraw_url, json=payload, headers=headers)
         if response.status_code == 200:
-            update.message.reply_text("Withdrawal request submitted successfully!")
+            # Record the withdrawal in the loss API
+            loss_payload = {
+                "username": username,
+                "amount": amount,
+                "type": "withdraw"
+            }
+            loss_response = requests.post(f"{BACK_URL}/payments/loss/", json=loss_payload)
+            if loss_response.status_code != 200:
+                logger.error(f"Failed to record withdrawal in loss API: {loss_response.text}")
+            await update.message.reply_text("Withdrawal request confirmed. Please wait for approval.")
         else:
-            update.message.reply_text("Error processing withdrawal. Please try again later.")
-    except Exception as e:
-        logger.error(f"Error processing withdrawal: {e}")
-        update.message.reply_text("An error occurred. Please try again later.")
-   
+            await update.message.reply_text("An error occurred while processing your withdrawal request. Please try again later.")
+        print("response = ",response)
+
+        return ConversationHandler.END
+
+    except ValueError:
+        await update.message.reply_text("Please enter a valid number")
+        return WITHDRAW_AMOUNT
+ 
+
+
+
+async def withdraw_amount_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    withdraw_url = "https://api.addispay.et/checkout-api/v1/payment/direct-b2c"
+    print("withdraw_url = ",withdraw_url)
+
+    username = update.message.from_user.username
+    phone = update.message.from_user.phone_number
+    amount = update.message.text
+    headers = {
+        "Auth":apiKey
+    }
+    # phone = "251911992283"
+    # amount = 1
+    payload = {
+        "data":{
+        "cancel_url":"https://t.me/SelamBingo_bot",
+        "success_ur":"https://t.me/SelamBingo_bot",
+        "error_url":"https://t.me/SelamBingo_bot",
+        "order_reason":"test",
+        "currency":"ETB",
+        "customer_name":username,
+        "phone_number":phone,
+        "nonce":"3ways_"+generate_nonce(64),
+        "payment_method":"telebirr",
+        "total_amount":f"{amount}",
+        "tx_ref":"3ways_"+generate_nonce(64)
+        
+        },
+        "message":"withdrawal request"
+        
+        }
+    
+    response = requests.post(withdraw_url, json=payload, headers=headers)
+    print("response = ",response.text)
+    
+
     return ConversationHandler.END
+
+async def withdraw_amount_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("WITHDRAW_AMOUNT_CANCEL = ",WITHDRAW_AMOUNT_CANCEL)
+    query = update.callback_query
+    await query.answer()
+    await query.edit_message_text("Withdrawal request cancelled.")
+    return ConversationHandler.END
+
+
 
 async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = deposit_opitions_keyboard()  # Create the inline keyboard
@@ -209,6 +335,7 @@ async def instruction_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
+  
 
     try:
         if query.data in ['10', '20', '50', '100']:
@@ -224,7 +351,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 return
 
             # Check user's balance
-            # balance = requests.get(f'{BACK_URL}/payments/balance?username={username}').json().get("balance",{}).get("results",{})[0].get("totalTransactionAmount",0)
             balance = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
             bet_amount = int(query.data)
             print("bet_amount = ",bet_amount)
@@ -259,6 +385,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return ConversationHandler.END
 
 
+        elif query.data == 'withdraw_confirm':
+            return WITHDRAW_AMOUNT_CONFIRM
+
         if query.data == 'play' :
             await query.edit_message_text(
                 text="Choose a play option:",
@@ -274,10 +403,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 ]])
             )
 
-            # await query.edit_message_text(
-            #     text="Choose a play option:",
-            #     reply_markup=instructions_options_keyboard()
-            # )
+           
 
         elif query.data == 'contact_support':
             await query.edit_message_text(
@@ -388,9 +514,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await query.edit_message_text("An error occurred while fetching your balance. Please try again later.")
                 return
             balance = balance_response.json().get('balance', 0)
-            print("balance = ",balance)
-            
-            
+          
             if balance <= 0:
                 await query.edit_message_text("You don't have sufficient balance to withdraw.")
                 return
@@ -414,9 +538,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 reply_markup=reply_markup,
                 parse_mode='Markdown'
             )
-            return WITHDRAW_AMOUNT  # Move to withdrawal amount state
-         
-        
+            return WITHDRAW_AMOUNT
+
+
         
         elif query.data == "register":
            
@@ -482,9 +606,9 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
         data = {
         "redirect_url": "https://t.me/SelamBingo_bot",
-        "cancel_url": "https://api.selambingo.com/cancel",
+        "cancel_url": "https://t.me/SelamBingo_bot",
         "success_url": "https://api.selambingo.com/payments/success/",
-        "error_url": "https://api.selambingo.com/payments/error/",
+        "error_url": "https://t.me/SelamBingo_bot",
         "order_reason": "payament for selam bingo bot",
         "currency": "ETB",
         "email": f"{first_name}@gmail.com",
@@ -628,13 +752,9 @@ def main() -> None:
         entry_points=[CallbackQueryHandler(button)],
         states={
             DEPOSIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, deposit_amount)],
-        },
-        fallbacks=[],
-    )
-    wihtdraw_conversation_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(button)],
-        states={
-            WITHDRAW_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)],
+            WITHDRAW_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount_function)],
+            WITHDRAW_AMOUNT_CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount_confirm)],
+            WITHDRAW_AMOUNT_CANCEL: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount_cancel)],
         },
         fallbacks=[],
     )
@@ -646,7 +766,7 @@ def main() -> None:
     application.add_handler(CommandHandler('support', support_command))
     application.add_handler(CommandHandler('withdraw', withdraw_command))
     application.add_handler(deposit_conversation_handler)
-    application.add_handler(wihtdraw_conversation_handler)
+    # application.add_handler(withdraw_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
