@@ -14,13 +14,15 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ["api.selambingo.com","188.245.75.205","127.0.0.1"]
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["https://api.selambingo.com","http://188.245.75.205","http://127.0.0.1","*"]
+
 CSRF_TRUSTED_ORIGINS = [
     'https://api.selambingo.com'
 ]
 
-CORS_ALLOWED_ORIGINS = ["https://api.selambingo.com/","http://localhost:3000/","*"]
+CORS_ALLOWED_ORIGINS = ["https://api.selambingo.com","http://localhost:3000"]
+CORS_ALLOW_CREDENTIALS = True
+
 
 # Application definition
 # main()
@@ -54,7 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-  "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
 
@@ -82,7 +84,8 @@ WSGI_APPLICATION = "botbackend.wsgi.application"
 # AUTH_US ER_MODEL = 'accounts.TelegramUser'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-"""
+
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -90,17 +93,17 @@ DATABASES = {
     }
 }
 
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bot',
-        'USER': 'postgres',
-        'PASSWORD': '123456',
-        'HOST': 'localhost',  # Set to the database server address, e.g., an IP address.
-        'PORT': '5432',       # Default PostgreSQL port.
-    }
-}
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'bot',
+#         'USER': 'postgres',
+#         'PASSWORD': '123456',
+#         'HOST': 'localhost',  # Set to the database server address, e.g., an IP address.
+#         'PORT': '5432',       # Default PostgreSQL port.
+#     }
+# }
 
 
 
