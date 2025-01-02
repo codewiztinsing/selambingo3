@@ -117,7 +117,6 @@ def win(request):
             'success': False,
             'message': str(e)
         }, status=500)
-    return JsonResponse({'message': 'Payment successful'})
 
 @csrf_exempt
 def withdraw(request):
@@ -194,12 +193,32 @@ def withdraw_success(request):
 
 @csrf_exempt
 def withdraw_error(request):
-    print("withdraw_error = ",request.body)
-    data = json.loads(request.body)
-    username = data.get('username')
-    amount = data.get('amount')
-    telegram_user = TelegramUser.objects.filter(username=username).first()
-    wallet = Wallet.objects.filter(user=telegram_user).first()
-    wallet.balance += float(amount)
-    wallet.save()
+   
     return JsonResponse({'message': 'Withdrawal failed'})
+
+
+
+@csrf_exempt
+def return_funds(request):
+    if request.method != "POST":
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
+    
+    data = json.loads(request.body)
+    print("data = ",data)
+    username = data.get('username')
+    if username == "":  
+        return JsonResponse({'message': 'Username is required'}, status=400)
+    amount = data.get('betAmount',0.0)
+    if amount == 0.0:
+        return JsonResponse({'message': 'Amount is required'}, status=400)
+    try:
+        telegram_user = TelegramUser.objects.filter(username=username).first()
+        print("telegram_user = ",telegram_user)
+        wallet = Wallet.objects.filter(user=telegram_user).first()
+        print("wallet = ",wallet)
+        print("amount = ",amount)
+        wallet.balance += float(amount)
+        wallet.save()
+        return JsonResponse({'message': 'Funds returned successfully'})
+    except Exception as e:
+        return JsonResponse({'message': str(e)}, status=500)

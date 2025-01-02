@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import get_balance,success,error,win,withdraw,loss,get_wallet,commission,withdraw_success,withdraw_error
+from .views import get_balance,success,error,win,withdraw,loss,get_wallet,commission,withdraw_success,withdraw_error,return_funds
 
 urlpatterns = [
     # path('deposit/', pay_with_chapa,name="pay-with-chapa"),
     path('balance/', get_balance,name="get-balance"),
+    path('returnFunds/', return_funds,name="return-funds"),
     path('success/', success,name="success"),
     path('win/', win,name="win"),
     path('loss/', loss,name="loss"),
