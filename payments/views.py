@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from accounts.models import TelegramUser
-from .models import Wallet
+from .models import Wallet,Commission
 from django.views.decorators.csrf import csrf_exempt
 import requests
 # Create your views here.
@@ -48,6 +48,7 @@ def get_wallet(request,username):
 
 @csrf_exempt
 def success(request):
+    print("success = ",request.body)
     data = json.loads(request.body)
     
     username = data.get('order').get('username', '')  # Note: keeping the typo from the data structure
@@ -121,9 +122,22 @@ def win(request):
 @csrf_exempt
 def withdraw(request):
     data = json.loads(request.body)
-    username = data.get('username')
-    amount = data.get('amount')
-    return JsonResponse({'message': 'Withdrawal successful'})
+    username = data.get('username','')
+    if request.method == "POST":
+        if username == "":
+            return JsonResponse({'message': 'Username is required'}, status=400 )
+        amount = data.get('amount',0.0)
+        if amount == 0.0:
+            return JsonResponse({'message': 'Amount is required'}, status=400)
+        telegram_user = TelegramUser.objects.filter(username=username).first()
+        wallet = Wallet.objects.filter(user=telegram_user).first()
+        wallet.balance -= float(amount)
+        wallet.save()
+        return JsonResponse({'message': 'Withdrawal successful'})
+    else:
+        telegram_user = TelegramUser.objects.filter(username=username).first()
+        wallet = Wallet.objects.filter(user=telegram_user).first()
+        return JsonResponse({'balance': wallet.balance})
 
 
 @csrf_exempt
@@ -144,3 +158,48 @@ def loss(request):
         return JsonResponse({'message': str(e)}, status=500)
 
 
+
+@csrf_exempt
+def commission(request):
+    data = json.loads(request.body)
+
+    game_type = data.get('game_type')
+    if game_type == "": 
+        return JsonResponse({'message': 'Game type is required'}, status=400)
+    amount = data.get('amount')
+    if amount == "":
+        return JsonResponse({'message': 'Amount is required'}, status=400)
+    commission = Commission.objects.create(game_type=game_type, amount=amount)
+    return JsonResponse({'message': 'Commission created successfully'})
+
+
+@csrf_exempt
+def withdraw_success(request):
+    print("withdraw_success = ",request.body)
+    data = json.loads(request.body)
+
+    username = data.get('username','')
+    if username == "":
+        return JsonResponse({'message': 'Username is required'}, status=400)
+    amount = data.get('amount',0.0)
+    if amount == 0.0:
+
+        return JsonResponse({'message': 'Amount is required'}, status=400)
+    telegram_user = TelegramUser.objects.filter(username=username).first()
+    wallet = Wallet.objects.filter(user=telegram_user).first()
+    wallet.balance += float(amount)
+    wallet.save()
+   
+    return JsonResponse({'message': 'Withdrawal successful'})
+
+@csrf_exempt
+def withdraw_error(request):
+    print("withdraw_error = ",request.body)
+    data = json.loads(request.body)
+    username = data.get('username')
+    amount = data.get('amount')
+    telegram_user = TelegramUser.objects.filter(username=username).first()
+    wallet = Wallet.objects.filter(user=telegram_user).first()
+    wallet.balance += float(amount)
+    wallet.save()
+    return JsonResponse({'message': 'Withdrawal failed'})
