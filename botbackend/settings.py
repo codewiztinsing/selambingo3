@@ -14,7 +14,7 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://api.selambingo.com","http://188.245.75.205","http://127.0.0.1","*"]
+ALLOWED_HOSTS = ["https://api.selambingo.com","http://188.245.75.205","http://127.0.0.1","https://selambingo.com/"]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://api.selambingo.com'
