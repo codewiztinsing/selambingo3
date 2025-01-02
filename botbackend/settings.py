@@ -14,15 +14,16 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://api.selambingo.com","http://188.245.75.205","http://127.0.0.1","*"]
+ALLOWED_HOSTS = ["api.selambingo.com","188.245.75.205","127.0.0.1","localhost"]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://api.selambingo.com'
 ]
 
-CORS_ALLOWED_ORIGINS = ["https://api.selambingo.com","http://localhost:3000"]
-CORS_ALLOW_CREDENTIALS = True
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://selambingo.com"
+]
 
 # Application definition
 # main()
@@ -41,14 +42,11 @@ INSTALLED_APPS = [
     'djoser',
     'compressor', 
     'accounts',
-    "corsheaders",
-
- 
-  
-
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -56,8 +54,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
+
+    
 ]
 
 ROOT_URLCONF = "botbackend.urls"
