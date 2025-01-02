@@ -20,7 +20,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://api.selambingo.com'
 ]
 
-CORS_ALLOWED_ORIGINS = ["https://api.selambingo.com","http://localhost:3000"]
+CORS_ALLOWED_ORIGINS = ["https://api.selambingo.com","http://localhost:3000","https://selambingo.com]
 CORS_ALLOW_CREDENTIALS = True
 
 
