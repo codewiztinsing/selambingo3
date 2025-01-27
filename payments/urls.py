@@ -12,7 +12,7 @@ urlpatterns = [
     path('withdraw/', withdraw,name="withdraw"),
     path('withdraw/success/', success,name="withdraw-success"),
     path('withdraw/error/', error,name="withdraw-error"),
-    path('wallet/<str:username>/', get_wallet,name="get-wallet"),
+    path('wallet/<str:user_id>/', get_wallet,name="get-wallet"),
     path('commission/', commission,name="commission"),
 
 ]

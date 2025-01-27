@@ -153,7 +153,8 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
     phone_number = context.user_data.get('phone_number')
     # Check user's wallet balance before processing withdrawal
     telegram_user = update.effective_user.username
-    wallet_response = requests.get(f'{BACK_URL}/payments/wallet/{telegram_user}/')
+    user_id = update.effective_user.id
+    wallet_response = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/')
     
     if wallet_response.status_code != 200:
         await update.message.reply_text("Error: Unable to check wallet balance. Please try again.")
@@ -259,9 +260,6 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-
-
-
 # Function to create the play options keyboard
 def support_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
@@ -286,16 +284,18 @@ async def instruction_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    username = query.from_user.username
     await query.answer()
   
 
     try:
         if query.data in ['10', '20', '50', '100']:
-            username = query.from_user.username
+            user_id = query.from_user.id
             
             # Check if user is registered
-            registration_response = requests.get(f'{BACK_URL}/accounts/filter-users/?username={username}')
-            if registration_response.status_code != 200:
+            response = requests.get(f'{BACK_URL}/accounts/filter-users/{user_id}/')
+            print("response = ",response)
+            if response.status_code != 200:
                 await query.edit_message_text(
                     text="You need to register first before playing. Use the /register command.",
                     reply_markup=instructions_options_keyboard()
@@ -303,7 +303,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 return
 
             # Check user's balance
-            balance = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
+            balance = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json().get('balance',0)
             bet_amount = int(query.data)
           
             if balance < bet_amount:
@@ -321,7 +321,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             player_id = query.from_user.id
             username = query.from_user.username
             bet_amount = 0  # Demo game has no bet amount
-            wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
+            wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json().get('balance',0)
             web_app_url = (
                 f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}&demo=true"
             )
@@ -393,8 +393,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             username = query.from_user.username
             first_name = query.from_user.first_name
             last_name = query.from_user.last_name
+            user_id = query.from_user.id
             # Get wallet balance from API
-            response = requests.get(f'{BACK_URL}/payments/wallet/{username}/')
+            response = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/')
             balance = response.json().get('balance', 0)
            
 
@@ -421,10 +422,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         elif query.data in ['10','20', '50','100']:
 
             player_id = query.from_user.id
+            user_id = query.from_user.id
             username = query.from_user.username or query.from_user.first_name
             bet_amount = query.data
         
-            wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{username}/').json().get('balance',0)
+            wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json().get('balance',0)
             print("data = ",query.data)
 
             web_app_url = (
@@ -576,7 +578,7 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await update.message.reply_text("Please enter a valid number.")
     except Exception as e:
         logger.error(f"Error processing deposit: {e}")
-        await update.message.reply_text("An error occurred. Please try again.")
+        await update.message.reply_text("Please try again.")
 
 
 
@@ -649,10 +651,27 @@ all_public_commands_descriptions = [
     ]
 
 
-
-
 async def post_init(app):
     await app.bot.set_my_commands(all_public_commands_descriptions)
+
+
+async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    users = requests.get(f'{BACK_URL}/accounts/all-users/').json()  # Fetch all users
+   
+    text = " ውድ ሰላም ቢንጎ ተጫዋቾች .በአሁኑ ጊዜ በጥገና ላይ ነን እና በቅርቡ እንመለሳለን! ለትዕግስትዎ እናመሰግናለን። 🛠️"
+    for user in users:
+
+        sent_users = set()  # Keep track of users to whom messages have been sent
+        if user['telegram_id'] not in sent_users:
+            sent_users.add(user['telegram_id'])  # Mark user as sent
+            try:
+                await context.bot.send_message(chat_id=user['telegram_id'], text=text)
+            except Exception as e:
+                continue
+        else:
+            continue  # Skip sending message if already sent
+      
+  
 
 
 def main() -> None:
@@ -680,6 +699,8 @@ def main() -> None:
         fallbacks=[],
     )
 
+ 
+
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('play', play_command))
     application.add_handler(CommandHandler("deposit",deposit_command))
@@ -687,6 +708,9 @@ def main() -> None:
     application.add_handler(CommandHandler('support', support_command))
     application.add_handler(CommandHandler('withdraw', withdraw_command))
     application.add_handler(deposit_conversation_handler)
+    application.add_handler(CommandHandler('broadcast', broadcast_message))
+
+  
     # application.add_handler(withdraw_conversation_handler)
     application.add_handler(register_conversation_handler)
     application.run_polling(allowed_updates=Update.ALL_TYPES)

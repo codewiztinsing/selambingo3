@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from accounts.models import TelegramUser
-from .models import Wallet,Commission
+from .models import Wallet,Commission,Charge,WinTracker
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 import requests
 # Create your views here.
@@ -32,9 +33,9 @@ def get_balance(request):
     
 
 @csrf_exempt
-def get_wallet(request,username):
-    telegram_user = TelegramUser.objects.filter(username=username).first()
-    wallet = Wallet.objects.filter(user=telegram_user).first()
+def get_wallet(request,user_id):
+    telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
+    wallet = Wallet.objects.filter(user=telegram_user).first()  
     if wallet is not None:
         wallet = wallet.balance
         return JsonResponse({'balance': wallet})
@@ -90,33 +91,27 @@ def win(request):
     # Get payment data from POST request
     data = json.loads(request.body)
     username = data.get('username','')
-    if username == "":
-        return JsonResponse({'message': 'Username is required'}, status=400)
+    game_id = data.get('gameId','')
     amount = data.get('amount',0.0)
+    
+    player = TelegramUser.objects.filter(username=username).first()
+    win_tracker = WinTracker.objects.filter(game_id=game_id, user=player).first()
  
-
-    try:
-        # Get or create user wallet
-        telegram_user = TelegramUser.objects.filter(username=username).first()
-        print("telegram_user = ",telegram_user)
-        wallet, created = Wallet.objects.get_or_create(user=telegram_user)
-        print("wallet = ",wallet)
-        print("created = ",created)
-        
-        # Add winning amount to wallet balance
+    if win_tracker is not None:
+        return JsonResponse({'message': f'Player already won this game {game_id} '}, status=400)
+    else:
+        wallet = Wallet.objects.filter(user=player).first()
         wallet.balance += float(amount)
+        win_tracker = WinTracker.objects.create(user=player, game_id=game_id, win_amount=float(amount))
         wallet.save()
+        return JsonResponse({'message': f'Win amount {amount} added to {username} successfully'})
 
-        return JsonResponse({
-            'success': True,
-            'message': 'Win amount added successfully',
-            'new_balance': float(wallet.balance)
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': str(e)
-        }, status=500)
+
+
+
+
+    
+
 
 @csrf_exempt
 def withdraw(request):
@@ -142,19 +137,46 @@ def withdraw(request):
 @csrf_exempt
 def loss(request):
     data = json.loads(request.body)
-    username = data.get('username','')
-    if username == "":
-        return JsonResponse({'message': 'Username is required'}, status=400)
-    
-    amount = data.get('amount',0.0) 
-    try:
-        telegram_user = TelegramUser.objects.filter(username=username).first()
-        wallet = Wallet.objects.filter(user=telegram_user).first()
-        wallet.balance -= float(amount)
-        wallet.save()
-        return JsonResponse({'message': 'Loss done'})
-    except Exception as e:
-        return JsonResponse({'message': str(e)}, status=500)
+    playersInGame = data.get('players', [])
+    betAmount = data.get('betAmount', 0.00)
+    gameId = data.get('gameId', '')
+
+    charged_players = []
+    skipped_players = []
+
+    for player_data in playersInGame:
+        player = TelegramUser.objects.filter(telegram_id=player_data.get('playerId')).first()
+        if player is None:
+            print(f"Player {player_data.get('playerId')} not found.")
+            continue  
+
+        existing_charge = Charge.objects.filter(game_id=gameId, player=player, charged=True).first()
+        if existing_charge is not None:
+            print(f"Player {player.telegram_id} already charged for game {gameId}.")
+            skipped_players.append(player)
+            continue
+
+        with transaction.atomic():
+            wallet = Wallet.objects.filter(user=player).first()
+            if wallet is None:
+                print(f"Wallet not found for player {player.telegram_id}.")
+                skipped_players.append(player)
+                continue
+
+            if wallet.balance < float(betAmount):
+                print(f"Insufficient balance for player {player.telegram_id}. Balance: {wallet.balance}, Bet: {betAmount}.")
+                skipped_players.append(player)
+                continue
+
+            wallet.balance -= float(betAmount)
+            wallet.save()
+            Charge.objects.create(game_id=gameId, betAmount=float(betAmount), player=player, charged=True)
+            charged_players.append(player)
+
+    if charged_players:
+        return JsonResponse({'message': 'Charges processed', 'charged': len(charged_players), 'skipped': len(skipped_players)})
+    else:
+        return JsonResponse({'message': 'No charges processed, all players already charged or skipped.'})
 
 
 
