@@ -85,24 +85,17 @@ WSGI_APPLICATION = "botbackend.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'bot',
+        'USER': 'postgres',
+        'PASSWORD': '123456',
+        'HOST': 'localhost',  # Set to the database server address, e.g., an IP address.
+        'PORT': '5432',       # Default PostgreSQL port.
     }
 }
-
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'bot',
-#         'USER': 'postgres',
-#         'PASSWORD': '123456',
-#         'HOST': 'localhost',  # Set to the database server address, e.g., an IP address.
-#         'PORT': '5432',       # Default PostgreSQL port.
-#     }
-# }
 
 
 
