@@ -108,8 +108,8 @@ async def get_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                InlineKeyboardButton("Adiss pay", callback_data='adiss'),
-                 InlineKeyboardButton("Manual", callback_data='manual')
+                InlineKeyboardButton("💳 Arif pay", callback_data='arif'),
+                 InlineKeyboardButton("💰 Manual", callback_data='manual')
                  ],
                  [
                 InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')
@@ -410,7 +410,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"💰 Wallet Balance: {balance:.2f} ETB\n"
                 "------------------------\n"
                 "💳 Payment Methods Available:\n"
-                "• Adiss Pay\n" 
+                "• Arif Pay\n" 
                 "• Manual Transfer\n\n"
                 "Use /deposit to add funds"
             )
@@ -442,12 +442,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'deposit':
             keyboard = [
-                [InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                [InlineKeyboardButton("Arif pay", callback_data='arif'),
                  InlineKeyboardButton("Manual", callback_data='manual')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
-        elif query.data == 'adiss':
+        elif query.data == 'arif':
             await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
@@ -502,9 +502,14 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     first_name =  update.message.from_user.first_name or "Bot user"
     last_name =  update.message.from_user.last_name or "Bot Father"
     username = update.message.from_user.username
+    arif_pay_url = "https://gateway.arifpay.org/api/checkout/session"
+    api_key = os.getenv("ARIF_PAY_API_KEY")
+    arif_pay_headers = {
+        "x-arifpay-key":api_key
+    }
     phone = None
     if update.message.from_user:
-        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()
+        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?user_id={update.message.from_user.id}").json()
         phone = phone.get('phone',None)
         if phone is None:
             keyboard = [
@@ -527,51 +532,62 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         logger.info(f"Received deposit amount: {amount}")
 
-        data = {
-        "redirect_url": "https://t.me/SelamBingo_bot",
-        "cancel_url": "https://t.me/SelamBingo_bot",
-        "success_url": "https://api.selambingo.com/payments/success/",
-        "error_url": "https://t.me/SelamBingo_bot",
-        "order_reason": "payament for selam bingo bot",
-        "currency": "ETB",
-        "email": f"{first_name}@gmail.com",
-        "first_name": first_name,
-        "last_name": last_name,
-        "nonce":  "selam_pay_" + generate_nonce(64),
-        "order_detail": {
-            "amount":float(amount),
-            "description": "the transcationt to deposit amount in my bot wallet",
-            "items": "single bot transcation",
-            "phoneNumber": phone,
-            "username": username,
-            "telecomOperator": "ethio_telecom"
-            
-        },
-        "phone_number": phone,
-        "session_expired": "5000",
-        "total_amount": f"{amount}",
-        "tx_ref": "selam_pay_" + generate_nonce(64),
+        body = {
+            "cancelUrl": "https://api.selambingo.com/cancel",
+            "phone":phone,
+            "email":"example@arifpay.net",
+            "nonce": generate_nonce(),
+            "errorUrl": "https://api.selambingo.com/payment/error/",
+            "notifyUrl": "https://api.selambingo.com/payment/notify/",
+            "successUrl": "https://api.selambingo.com/payment/success/",
+            "paymentMethods": ["TELEBIRR","AWASH","AWASH_WALLET","PSS","CBE","AMOLE","BOA","KACHA","TELEBIRR_USSD","HELLOCASH","MPESSA"],
+            "expireDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "items": [
+                {
+                    "name": "Name",
+                    "quantity": 1,
+                    "price": amount,
+                    "description": "Item description ",
+                    "image": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+                }
+            ],
+            "beneficiaries": [
+                {
+                    "accountNumber": "01320811436100",
+                    "bank": "AWINETAA",
+                    "amount": 1
+                }
+            ],
+            "lang": "EN"
         }
+        response = requests.post(arif_pay_url, json=body, headers=arif_pay_headers)
     
-        addispay_checkout_api_url="https://api.addispay.et/checkout-api/v1/create-order"
-        payload = {
-        "data":data,
-        "message":"payment for selam bingo bot"
-        }
-        response = requests.post(addispay_checkout_api_url, json=payload, headers=headers)
-    
-        print("response for deposit=",response)
-        checkout_url = None
+        paymentUrl = None
         if response.status_code ==200:
-            response_content = response.json()
-            checkout_url= response_content["checkout_url"] + "/"+response_content["uuid"]
+            paymentUrl = response.json().get("data").get("paymentUrl")
+            session_id = response.json().get("data").get("sessionId")
+        # Create payment session record
+        session_data = {
+            'username': update.effective_user.username,
+            'user_id': update.effective_user.id,
+            'phone': phone,
+            'session_id': session_id,
+            'amount': amount
+        }
+        
+        session_response = requests.post(f'{BACK_URL}/payments/session/', json=session_data)
+        
+        if session_response.status_code != 200 and session_response.status_code != 201:
+            logger.error(f"Failed to create payment session: {session_response.text}")
+            await update.message.reply_text("Error creating payment session. Please try again.")
+            return ConversationHandler.END
 
-        if checkout_url:
+        if paymentUrl and session_id:
             keyboard = [
-                [InlineKeyboardButton("Open Adiss pay!", web_app=WebAppInfo(url=checkout_url))]
+                [InlineKeyboardButton("Open Arif pay!", web_app=WebAppInfo(url=paymentUrl))]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text("pay with Adiss pay", reply_markup=reply_markup)
+            await update.message.reply_text("pay with Arif pay", reply_markup=reply_markup)
 
         return ConversationHandler.END  # End the conversation
     except ValueError:

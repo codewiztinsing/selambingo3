@@ -49,3 +49,16 @@ class Charge(models.Model):
 
     def __str__(self):
         return f"{self.player.username}   {'charged' if self.charged else 'not charged'} for game {self.game_id}"
+    
+
+
+class PaymentSession(models.Model):
+    user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
+    status = models.CharField(max_length=255,choices=[('pending','pending'),('paid','paid'),('failed','failed')])
+    session_id = models.CharField(max_length=255,unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.session_id})"  

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from accounts.models import TelegramUser
-from .models import Wallet,Commission,Charge,WinTracker
+from .models import Wallet,Commission,Charge,WinTracker,PaymentSession
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 import requests
@@ -244,3 +244,21 @@ def return_funds(request):
         return JsonResponse({'message': 'Funds returned successfully'})
     except Exception as e:
         return JsonResponse({'message': str(e)}, status=500)
+    
+
+
+@csrf_exempt
+def create_payment_session(request):
+    data = json.loads(request.body)
+    
+    user_id = data.get('user_id',0)
+    if user_id == 0:   
+        return JsonResponse({'message': 'User id is required'}, status=400)
+    amount = data.get('amount',0.0)
+    if amount == 0.0:
+        return JsonResponse({'message': 'Amount is required'}, status=400)
+    session_id = data.get('session_id','')
+    if session_id == "":
+        return JsonResponse({'message': 'Session id is required'}, status=400)
+    payment_session = PaymentSession.objects.create(user__id=user_id, amount=amount, session_id=session_id,status="pending")
+    return JsonResponse({'message': 'Payment session created successfully'},status=201)

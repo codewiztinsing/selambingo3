@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet,Commission,Charge,WinTracker
+from .models import Wallet,Commission,Charge,WinTracker,PaymentSession
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -54,6 +54,24 @@ class WinTrackerAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('user', 'game_id', 'win_amount')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(PaymentSession)
+class PaymentSessionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'session_id', 'amount', 'created_at', 'updated_at')
+    list_filter = ('created_at', 'updated_at')
+    search_fields = ('user__username', 'session_id')
+    readonly_fields = ('created_at', 'updated_at')
+
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'session_id', 'amount')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

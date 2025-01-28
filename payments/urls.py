@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import get_balance,success,error,win,withdraw,loss,get_wallet,commission,withdraw_success,withdraw_error,return_funds
+from .views import get_balance,success,error,win,withdraw,loss,get_wallet,commission,withdraw_success,withdraw_error,return_funds,create_payment_session
 
 urlpatterns = [
     # path('deposit/', pay_with_chapa,name="pay-with-chapa"),
@@ -14,6 +14,6 @@ urlpatterns = [
     path('withdraw/error/', error,name="withdraw-error"),
     path('wallet/<str:user_id>/', get_wallet,name="get-wallet"),
     path('commission/', commission,name="commission"),
-
+    path('session/', create_payment_session,name="create-payment-session"),
 ]
 
