@@ -64,14 +64,14 @@ class WinTrackerAdmin(admin.ModelAdmin):
 
 @admin.register(PaymentSession)
 class PaymentSessionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'session_id', 'amount', 'created_at', 'updated_at')
+    list_display = ('user', 'session_id', 'amount', 'created_at', 'updated_at','status')
     list_filter = ('created_at', 'updated_at')
     search_fields = ('user__username', 'session_id')
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at','status')
 
     fieldsets = (
         (None, {
-            'fields': ('user', 'session_id', 'amount')
+            'fields': ('user', 'session_id', 'amount','status')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),

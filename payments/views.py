@@ -14,15 +14,15 @@ import math
 import json
 @csrf_exempt
 def get_balance(request):
-    username = request.GET.get('username',"")
+    user_id = request.GET.get('user_id',0)
     headers = {
         "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZU51bWJlciI6IjI1MTk5MTIyMTkxMiIsInVzZXJfaWQiOjI5LCJleHAiOjE3MzUyMDU4ODF9.mFHDjXUe9ZKQ-aS1fNgp2HfQUDKPbLyjRmamzFNjCIA"
     }
-    if username == "":
-        return JsonResponse({'error': 'Username is required'}, status=400)
+    if user_id == 0:
+        return JsonResponse({'error': 'User id is required'}, status=400)
    
     try:
-        telegram_user = TelegramUser.objects.filter(username=username).first()
+        telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
         wallet = Wallet.objects.filter(user=telegram_user).first()
         if wallet != None:
             return JsonResponse({'balance': wallet.balance})
@@ -49,37 +49,95 @@ def get_wallet(request,user_id):
 
 @csrf_exempt
 def success(request):
-    print("success = ",request.body)
-    data = json.loads(request.body)
     
-    username = data.get('order').get('username', '')  # Note: keeping the typo from the data structure
-    amount = float(data.get('order').get('amount', 0))
-    print("username from addispay = ",username)
-    print("amount from addispay = ",amount)
+    data = json.loads(request.body)
+    print("data = ",data)   
+    session_id = data.get('sessionId','')
+    if session_id == "":
+        return JsonResponse({'message': 'Session id is required'}, status=400)
+    payment_session = PaymentSession.objects.filter(session_id=session_id).first()
 
     try:
-        # Get or create user wallet
-        telegram_user = TelegramUser.objects.filter(username=username).first()
-        wallet, created = Wallet.objects.get_or_create(user=telegram_user)
-        
-        # Add payment amount to wallet balance
-        wallet.balance += amount
-        wallet.save()
+        telegram_user = TelegramUser.objects.get(telegram_id=payment_session.user.telegram_id)
+    except TelegramUser.DoesNotExist:
+        return JsonResponse({'message': 'Telegram user not found'}, status=404)
 
-        return JsonResponse({
-            'success': True,
-            'message': 'Payment processed successfully',
-            'new_balance': float(wallet.balance)
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': str(e)
-        }, status=500)
+    if payment_session is None:
+        return JsonResponse({'message': 'Payment session not found'}, status=404)
+    if data.get('transactionStatus') == "SUCCESS":
+        payment_session.status = "paid"
+        payment_session.save()
+
+
+
+        bot_token = "7955523403:AAEavfPGnqIhCT452qlpydrtmicxkiK_wzc"
+        chat_id = telegram_user.telegram_id
+
+        message = f"✅ *Payment Successful!*\n\n💰 Amount: *{payment_session.amount} ETB*\n\nThank you for your payment! 🙏"
+        
+        
+        telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message
+        }
+        wallet = Wallet.objects.filter(user=telegram_user).first()
+        if wallet is not None:
+            wallet.balance += float(payment_session.amount)
+            wallet.save()
+        requests.post(telegram_url, json=payload)
+
+    else:
+        bot_token = "7955523403:AAEavfPGnqIhCT452qlpydrtmicxkiK_wzc"
+        chat_id = telegram_user.telegram_id
+        payment_session.status = "failed"
+        payment_session.save()
+
+        message = f"❌ *Payment Failed*\n\n💰 Amount: *{payment_session.amount} ETB*\n\nPlease try again or contact support if the issue persists."
+        
+        telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown"
+        }
+        requests.post(telegram_url, json=payload)
+        return JsonResponse({'message': 'Payment session updated successfully'})
+   
+
+
+
+    
    
 @csrf_exempt
 def error(request):
     data = json.loads(request.body)
+    session_id = data.get('sessionId')
+    payment_session = PaymentSession.objects.filter(session_id=session_id).first()
+    
+    if not payment_session:
+        return JsonResponse({'message': 'Payment session not found'}, status=404)
+        
+    payment_session.status = "failed"
+    payment_session.save()
+    
+    try:
+        bot_token = "7955523403:AAEavfPGnqIhCT452qlpydrtmicxkiK_wzc"
+        chat_id = payment_session.user.telegram_id
+
+        message = f"❌ *Payment Failed*\n\n💰 Amount: *{payment_session.amount} ETB*\n\nPlease try again or contact support if the issue persists."
+        
+        telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown"
+        }
+        
+        requests.post(telegram_url, json=payload)
+    except Exception as e:
+        print(f"Error sending Telegram notification: {e}")
+
   
     
     return JsonResponse({'message': 'Payment Failed'})
@@ -260,5 +318,21 @@ def create_payment_session(request):
     session_id = data.get('session_id','')
     if session_id == "":
         return JsonResponse({'message': 'Session id is required'}, status=400)
-    payment_session = PaymentSession.objects.create(user__id=user_id, amount=amount, session_id=session_id,status="pending")
-    return JsonResponse({'message': 'Payment session created successfully'},status=201)
+
+    
+    try:
+        telegram_user = TelegramUser.objects.get(telegram_id=user_id)
+        if telegram_user is None:
+            return JsonResponse({'message': 'User not found'}, status=404)
+        payment_session = PaymentSession.objects.create(
+            user=telegram_user,
+            amount=amount,
+            session_id=session_id,
+            status="pending"
+        )
+        return JsonResponse({'message': 'Payment session created successfully'},status=201)
+    except TelegramUser.DoesNotExist:
+        return JsonResponse({'message': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'message': str(e)}, status=500)
+

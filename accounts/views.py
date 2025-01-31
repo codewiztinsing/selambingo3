@@ -26,11 +26,11 @@ class UserRegistrationView(generics.CreateAPIView):
 
 
 
-class FilterUsersByPhoneView(generics.ListAPIView):
+class FilterUsersByPhoneView(generics.RetrieveAPIView):
     serializer_class = UserRegistrationSerializer
 
     def get(self, request, user_id,*args, **kwargs):
-
+        
         
             try:
                 user_id = int(user_id)
