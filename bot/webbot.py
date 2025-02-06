@@ -58,10 +58,21 @@ def generate_nonce(length=64):
 
 # Define conversation states
 DEPOSIT_AMOUNT = range(1)
+SCREENSHOT = range(2)
 PHONE_NUMBER,WITHDRAW_AMOUNT_CONFIRM,WITHDRAW_AMOUNT_CANCEL,CHOOSE_PAYMENT_METHOD = range(2,6)
 
 
+async def get_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    photo = update.message.photo[-1]
+    file_id = photo.file_id
+    file = await context.bot.get_file(file_id)
+    file_path = file.file_path
+    print("file_path = ",file_path)
+    await update.message.reply_text("Thank you for choosing our services. To complete your payment, please via  {amount} ETB  to  via Telebirr to +251991221912. 📲 Once the payment has been processed, kindly send us a screenshot of the transaction confirmation for verification. 📸")
+    return ConversationHandler.END
 
+    
+    
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -108,8 +119,8 @@ async def get_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                InlineKeyboardButton("💳 Telebirr", callback_data='arif'),
-                 InlineKeyboardButton("💰 Manual", callback_data='manual')
+                InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                 InlineKeyboardButton("Manual", callback_data='manual')
                  ],
                  [
                 InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')
@@ -157,7 +168,7 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
     wallet_response = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/')
     
     if wallet_response.status_code != 200:
-        await update.message.reply_text("❌ Please try again.")
+        await update.message.reply_text("Error: Unable to check wallet balance. Please try again.")
         return ConversationHandler.END
         
     wallet_data = wallet_response.json()
@@ -168,7 +179,6 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         return ConversationHandler.END
 
     
-    # withdraw_url = "https://arifpay.org/api/checkout/session"
     withdraw_url = "https://api.addispay.et/checkout-api/v1/payment/direct-b2c"
 
 
@@ -178,7 +188,7 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         'error_url': 'https://api.selambingo.com/payments/withdraw/error/', 
         'order_reason': 'Selam Bingo Withdrawal', 
         'currency': 'ETB', 
-        'customer_name': 'adaa_alepo', 
+        'customer_name': update.effective_user.full_name, 
         'phone_number': phone_number,
         'nonce': "selam_"+ generate_nonce(64), 
         'payment_method': 'telebirr', 
@@ -189,10 +199,11 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
        'message': 'withdrawal request'
        }
     
-    
 
+    
+    print("payload = ",payload)
     response = requests.post(withdraw_url, json=payload, headers=headers)
-    print("response = ",response.json())
+    print("with draw response = ",response)
 
     if response.status_code == 200:
         try:
@@ -211,20 +222,10 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
             print(f"Error processing withdrawal: {e}")
             await update.message.reply_text("Error processing withdrawal. Please try again.")
             return ConversationHandler.END
-        await update.message.reply_text("Withdrawal request sent successfully. Please wait for confirmation.")
         return ConversationHandler.END
     else:
-                    # Deduct amount from user's wallet
-        telegram_user = update.effective_user.username
-        deduct_response = requests.post(f'{BACK_URL}/payments/withdraw/', json={
-            'username': telegram_user,
-            'amount': float(amount)
-        })
-        
-        if deduct_response.status_code != 200:
-            await update.message.reply_text("Error: Unable to process withdrawal. Please try again.")
-            return ConversationHandler.END
-        await update.message.reply_text("Withdrawal request sent successfully. Please wait for confirmation.")
+       
+        await update.message.reply_text("አሁን መላክ አይቻልም")
   
     
     return ConversationHandler.END
@@ -297,7 +298,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             
             # Check if user is registered
             response = requests.get(f'{BACK_URL}/accounts/filter-users/{user_id}/')
-        
+            print("response = ",response)
             if response.status_code != 200:
                 await query.edit_message_text(
                     text="You need to register first before playing. Use the /register command.",
@@ -323,7 +324,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if query.data == 'play_demo':
             player_id = query.from_user.id
             username = query.from_user.username
-            user_id = query.from_user.id
             bet_amount = 0  # Demo game has no bet amount
             wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json().get('balance',0)
             web_app_url = (
@@ -414,7 +414,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"💰 Wallet Balance: {balance:.2f} ETB\n"
                 "------------------------\n"
                 "💳 Payment Methods Available:\n"
-                "• Telebirr\n" 
+                "• Adiss Pay\n" 
                 "• Manual Transfer\n\n"
                 "Use /deposit to add funds"
             )
@@ -446,21 +446,34 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'deposit':
             keyboard = [
-                [InlineKeyboardButton("📱 Telebirr", callback_data='arif'),
+                [InlineKeyboardButton("Adiss pay", callback_data='adiss'),
                  InlineKeyboardButton("Manual", callback_data='manual')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
-        elif query.data == 'arif':
-            await query.edit_message_text(text="Please enter the amount you want to deposit:")
+        elif query.data == 'adiss':
+            await query.edit_message_text(text="እባክዎ ማስገባት የሚፈልጉትን መጠን ያስገቡ፡-")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
         elif query.data == 'telebirr':
-            await query.edit_message_text("Please enter your phone number in the format: 09xxxxxxxx")
+            await query.edit_message_text("እባኮትን ስልክ ቁጥርዎን በቅርጸት ያስገቡ፡ 09xxxxxxxx")
             return PHONE_NUMBER  # Proceed to get phone number state
-            
-          
-           
+
+
+        elif query.data == 'manual':
+            await query.edit_message_text(text="Please enter the amount you want to deposit:")
+            amount = query.message.text
+        
+        
+            content = f"""
+                Thank you for choosing our services. To complete your payment, please via  {amount} ETB  to  via Telebirr to +251991221912. 📲 Once the payment has been processed, kindly send us a screenshot of the transaction confirmation for verification. 📸
+                If you have any questions or require any assistance, please do not hesitate to contact us. We appreciate your business and look forward to serving you. 🙏
+                Best regards
+                """
+    
+            await query.edit_message_text(text=content)
+            return SCREENSHOT  # Proceed to the next state to get the screenshot
+       
 
         elif query.data == 'cancel':
             await query.edit_message_text(text="Withdrawal request cancelled.")
@@ -506,31 +519,19 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     first_name =  update.message.from_user.first_name or "Bot user"
     last_name =  update.message.from_user.last_name or "Bot Father"
     username = update.message.from_user.username
-    arif_pay_url = "https://gateway.arifpay.net/api/checkout/telebirr-ussd/transfer/direct"
-    api_key = "mx9dn1iRbrV9NrlbTb8WIzVbrLfpKtY6" #os.getenv("ARIF_PAY_API_KEY")
-
-    arif_pay_headers = {
-        "x-arifpay-key":api_key
-    }
     phone = None
     if update.message.from_user:
-        try:    
-            response = requests.get(f"{BACK_URL}/accounts/filter-users/{update.message.from_user.id}/").json()
-            print("response to get phone number = ",response)
-            phone = response.get('phone',None)
-            print("phone = ",phone)
-            if phone is None:
-                keyboard = [
+        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()
+        phone = phone.get('phone',None)
+        if phone is None:
+            keyboard = [
                 [InlineKeyboardButton("Register", callback_data='register')]
-                ]
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                await update.message.reply_text(
-                    "You need to register first before making a deposit. Please click Register below.",
-                    reply_markup=reply_markup
-                )
-                return ConversationHandler.END
-        except Exception as e:
-            await update.message.reply_text("phone number not found")
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(
+                "You need to register first before making a deposit. Please click Register below.",
+                reply_markup=reply_markup
+            )
             return ConversationHandler.END
         
         
@@ -543,67 +544,51 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         logger.info(f"Received deposit amount: {amount}")
 
-        payload = {
-            "cancelUrl": "https://t.me/SelamBingo_bot",
-            "phone":phone,
-            "email":"telebirrTest@gmail.com",
-            "nonce": generate_nonce(), 
-            "errorUrl": "https://api.selambingo.com/payments/error/",
-            "notifyUrl": "https://api.selambingo.com/payments/success/",
-            "successUrl": "https://t.me/@KEmpireBingobot",
-            "paymentMethods": [
-                "TELEBIRR_USSD"
-            ],
-            "expireDate": "2025-02-01T03:45:27",
-            "items": [
-                {
-                    "name": "Selam Bingo",
-                    "quantity": 1,
-                    "price": amount,
-                    "description": "Selam Bingo deposit",
-                    "image": "https://4.imimg.com/data4/KK/KK/GLADMIN-/product-8789_bananas_golden-500x500.jpg"
-                }
-            ],
-            "beneficiaries": [
-                {
-                    "accountNumber": "01320811436100", 
-                    "bank": "AWINETAA",
-                    "amount": amount
-                }
-            ],
-            "lang": "EN"
+        data = {
+        "redirect_url": "https://t.me/SelamBingo_bot",
+        "cancel_url": "https://t.me/SelamBingo_bot",
+        "success_url": "https://api.selambingo.com/payments/success/",
+        "error_url": "https://t.me/SelamBingo_bot",
+        "order_reason": "payament for selam bingo bot",
+        "currency": "ETB",
+        "email": f"{first_name}@gmail.com",
+        "first_name": first_name,
+        "last_name": last_name,
+        "nonce":  "selam_pay_" + generate_nonce(64),
+        "order_detail": {
+            "amount":float(amount),
+            "description": "the transcationt to deposit amount in my bot wallet",
+            "items": "single bot transcation",
+            "phoneNumber": phone,
+            "username": username,
+            "telecomOperator": "ethio_telecom"
+            
+        },
+        "phone_number": phone,
+        "session_expired": "5000",
+        "total_amount": f"{amount}",
+        "tx_ref": "selam_pay_" + generate_nonce(64),
         }
-
-      
-        response = requests.post(arif_pay_url, json=payload, headers=arif_pay_headers)
     
-        paymentUrl = None
-        session_id = None
-        if response.status_code ==200:
-            paymentUrl = response.json().get("data").get("paymentUrl")
-            session_id = response.json().get("data").get("sessionId")
-        # Create payment session record
-        session_data = {
-            'username': update.effective_user.username,
-            'user_id': update.effective_user.id,
-            'phone': phone,
-            'session_id': session_id,
-            'amount': amount
+        addispay_checkout_api_url="https://api.addispay.et/checkout-api/v1/create-order"
+        payload = {
+        "data":data,
+        "message":"payment for selam bingo bot"
         }
-        
-        session_response = requests.post(f'{BACK_URL}/payments/session/', json=session_data)
-        
-        if session_response.status_code != 200 and session_response.status_code != 201:
-            logger.error(f"Failed to create payment session: {session_response.text}")
-            await update.message.reply_text("Error creating payment session. Please try again.")
-            return ConversationHandler.END
+        response = requests.post(addispay_checkout_api_url, json=payload, headers=headers)
+    
+        print("response for deposit=",response)
+        checkout_url = None
+        if response.status_code ==200:
+            response_content = response.json()
+            checkout_url= response_content["checkout_url"] + "/"+response_content["uuid"]
 
-        if paymentUrl and session_id:
+        if checkout_url:
             keyboard = [
-                [InlineKeyboardButton("Open Arif pay!", web_app=WebAppInfo(url=paymentUrl))]
+                [InlineKeyboardButton("Open Adiss pay!", web_app=WebAppInfo(url=checkout_url))]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text("pay with Arif pay", reply_markup=reply_markup)
+            await update.message.reply_text("pay with Adiss pay", reply_markup=reply_markup)
 
         return ConversationHandler.END  # End the conversation
     except ValueError:
@@ -727,6 +712,14 @@ def main() -> None:
             PHONE_NUMBER: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_phone_number)],
             WITHDRAW_AMOUNT_CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_withdraw_amount)]
            
+        },
+        fallbacks=[],
+    )
+
+    screenshot_conversation_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(button)],
+        states={
+            SCREENSHOT: [MessageHandler(filters.PHOTO, get_screenshot)]
         },
         fallbacks=[],
     )
