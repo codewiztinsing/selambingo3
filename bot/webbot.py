@@ -13,6 +13,7 @@ from telegram import (
     InlineKeyboardButton,
 )
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+from datetime import datetime, timedelta
 
 from telegram.ext import (
     Application,
@@ -38,10 +39,8 @@ logger = logging.getLogger(__name__)
 
 BACK_URL = config('BACK_URL')
 BOT_TOKEN = config('BOT_TOKEN')
-TEST_ADISS_SECRET = config('TEST_ADISS_SECRET')
 
-apiKey=  config('ADISS_SECRET')
-test_apiKey = config('TEST_ADISS_SECRET')
+apiKey=  config('ARIF_SECRET')
 
 				
 headers = {
@@ -119,7 +118,7 @@ async def get_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                InlineKeyboardButton("Arif pay", callback_data='arif'),
                  InlineKeyboardButton("Manual", callback_data='manual')
                  ],
                  [
@@ -414,7 +413,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"💰 Wallet Balance: {balance:.2f} ETB\n"
                 "------------------------\n"
                 "💳 Payment Methods Available:\n"
-                "• Adiss Pay\n" 
+                "• Arif Pay\n" 
                 "• Manual Transfer\n\n"
                 "Use /deposit to add funds"
             )
@@ -446,12 +445,12 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'deposit':
             keyboard = [
-                [InlineKeyboardButton("Adiss pay", callback_data='adiss'),
+                [InlineKeyboardButton("Arif pay", callback_data='arif'),
                  InlineKeyboardButton("Manual", callback_data='manual')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
-        elif query.data == 'adiss':
+        elif query.data == 'arif':
             await query.edit_message_text(text="እባክዎ ማስገባት የሚፈልጉትን መጠን ያስገቡ፡-")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
@@ -521,7 +520,8 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     username = update.message.from_user.username
     phone = None
     if update.message.from_user:
-        phone = requests.get(f"{BACK_URL}/accounts/filter-users/?username={update.message.from_user.username}").json()
+        user_id = update.message.from_user.id
+        phone = requests.get(f"{BACK_URL}/accounts/filter-users/{user_id}/").json()
         phone = phone.get('phone',None)
         if phone is None:
             keyboard = [
@@ -544,53 +544,73 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         logger.info(f"Received deposit amount: {amount}")
 
-        data = {
-        "redirect_url": "https://t.me/SelamBingo_bot",
-        "cancel_url": "https://t.me/SelamBingo_bot",
-        "success_url": "https://api.selambingo.com/payments/success/",
-        "error_url": "https://t.me/SelamBingo_bot",
-        "order_reason": "payament for selam bingo bot",
-        "currency": "ETB",
-        "email": f"{first_name}@gmail.com",
-        "first_name": first_name,
-        "last_name": last_name,
-        "nonce":  "selam_pay_" + generate_nonce(64),
-        "order_detail": {
-            "amount":float(amount),
-            "description": "the transcationt to deposit amount in my bot wallet",
-            "items": "single bot transcation",
-            "phoneNumber": phone,
-            "username": username,
-            "telecomOperator": "ethio_telecom"
-            
-        },
-        "phone_number": phone,
-        "session_expired": "5000",
-        "total_amount": f"{amount}",
-        "tx_ref": "selam_pay_" + generate_nonce(64),
-        }
-    
-        addispay_checkout_api_url="https://api.addispay.et/checkout-api/v1/create-order"
+        arifpay_checkout_api_url="https://gateway.arifpay.net/api/checkout/telebirr-ussd/transfer/direct"
         payload = {
-        "data":data,
-        "message":"payment for selam bingo bot"
+            "cancelUrl": "https://api.selambingo.com/payments/cancelUrl/",
+            "phone":phone,
+            "email":"telebirrTest@gmail.com",
+            "nonce": generate_nonce(), 
+            "errorUrl": "https://api.selambingo.com/payments/errorUrl/",
+            "notifyUrl": "https://api.selambingo.com/payments/notifyUrl/",
+            "successUrl": "https://api.selambingo.com/payments/successUrl/",
+            "paymentMethods": [
+                "TELEBIRR_USSD"
+            ],
+            "expireDate": (datetime.now() + timedelta(minutes=5)).isoformat(),
+            "items": [
+                {
+                    "name": "bingo game deposit",
+                    "quantity": 1,
+                    "price": amount,
+                    "description": "Arif pay for selam bingo",
+          }
+            ],
+            "beneficiaries": [
+                {
+                    "accountNumber": "01320811436100", 
+                    "bank": "AWINETAA",
+                    "amount":amount
+                }
+            ],
+            "lang": "EN"
         }
-        response = requests.post(addispay_checkout_api_url, json=payload, headers=headers)
+        headers = {
+           "x-arifpay-key": "aXOIyscT4H6TO0yrR1V32ehuzXquwlux"
+        }
+        response = requests.post(arifpay_checkout_api_url, json=payload, headers=headers)
+      
+        
+        if response.status_code == 200:
+            response_data = response.json().get("data",None).get("transaction",None)
+            if response_data is None:
+                await update.message.reply_text("Failed to initiate payment. Please try again.")
+                return
+            # Create payment session
+
+            print("response_data=",response_data)
+            payment_session_url = f"{BACK_URL}/payments/session/"
+            session_payload = {
+                "user_id": user_id,
+                "session_id": response_data.get("sessionId"),
+                "reference_no": reference_no,
+                "amount": amount,
+                "payment_id": response_data.get("paymentId"),
+                "status": "pending"
+            }
+            
+            session_response = requests.post(payment_session_url, json=session_payload, headers=headers)
+            
+            if session_response.status_code == 201:
+                await update.message.reply_text(
+                    f"Please complete your payment using this link:\n{response_data.get('shortUrl')}\n\n"
+                    "The payment link will expire in 5 minutes."
+                )
+            else:
+                await update.message.reply_text("Failed to create payment session. Please try again.")
+        else:
+            await update.message.reply_text("Failed to initiate payment. Please try again.")
     
-        print("response for deposit=",response)
-        checkout_url = None
-        if response.status_code ==200:
-            response_content = response.json()
-            checkout_url= response_content["checkout_url"] + "/"+response_content["uuid"]
-
-        if checkout_url:
-            keyboard = [
-                [InlineKeyboardButton("Open Adiss pay!", web_app=WebAppInfo(url=checkout_url))]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text("pay with Adiss pay", reply_markup=reply_markup)
-
-        return ConversationHandler.END  # End the conversation
+       
     except ValueError:
         await update.message.reply_text("Please enter a valid number.")
     except Exception as e:

@@ -308,31 +308,59 @@ def return_funds(request):
 @csrf_exempt
 def create_payment_session(request):
     data = json.loads(request.body)
-    
     user_id = data.get('user_id',0)
-    if user_id == 0:   
-        return JsonResponse({'message': 'User id is required'}, status=400)
     amount = data.get('amount',0.0)
-    if amount == 0.0:
-        return JsonResponse({'message': 'Amount is required'}, status=400)
+    reference_no = data.get('reference_no','')
+    payment_id = data.get('payment_id','')
     session_id = data.get('session_id','')
-    if session_id == "":
-        return JsonResponse({'message': 'Session id is required'}, status=400)
+    status = data.get('status','')
+
+    payment_session = PaymentSession.objects.create(
+        user_id=user_id,
+        amount=amount,
+        reference_no=reference_no,
+        payment_id=payment_id,
+        session_id=session_id,
+        status=status
+    )
+    return JsonResponse({'message': 'Payment session created successfully'},status=201)
+
+
+
+
+
+
+
+
+
+
+
+    # data = json.loads(request.body)
+    
+    # user_id = data.get('user_id',0)
+    # if user_id == 0:   
+    #     return JsonResponse({'message': 'User id is required'}, status=400)
+    # amount = data.get('amount',0.0)
+    # if amount == 0.0:
+    #     return JsonResponse({'message': 'Amount is required'}, status=400)
+    # session_id = data.get('session_id','')
+    # if session_id == "":
+    #     return JsonResponse({'message': 'Session id is required'}, status=400)
 
     
-    try:
-        telegram_user = TelegramUser.objects.get(telegram_id=user_id)
-        if telegram_user is None:
-            return JsonResponse({'message': 'User not found'}, status=404)
-        payment_session = PaymentSession.objects.create(
-            user=telegram_user,
-            amount=amount,
-            session_id=session_id,
-            status="pending"
-        )
-        return JsonResponse({'message': 'Payment session created successfully'},status=201)
-    except TelegramUser.DoesNotExist:
-        return JsonResponse({'message': 'User not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'message': str(e)}, status=500)
+    # try:
+    #     telegram_user = TelegramUser.objects.get(telegram_id=user_id)
+    #     if telegram_user is None:
+    #         return JsonResponse({'message': 'User not found'}, status=404)
+    #     payment_session = PaymentSession.objects.create(
+    #         user=telegram_user,
+    #         amount=amount,
+    #         session_id=session_id,
+    #         status="pending"
+    #     )
+    #     return JsonResponse({'message': 'Payment session created successfully'},status=201)
+    # except TelegramUser.DoesNotExist:
+    #     return JsonResponse({'message': 'User not found'}, status=404)
+    # except Exception as e:
+    #     return JsonResponse({'message': str(e)}, status=500)
 
