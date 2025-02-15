@@ -173,23 +173,25 @@ def win(request):
 
 @csrf_exempt
 def withdraw(request):
+    if request.method != "POST":
+        return JsonResponse({'message': 'Method not allowed'}, status=405)
+    
     data = json.loads(request.body)
-    username = data.get('username','')
-    if request.method == "POST":
-        if username == "":
-            return JsonResponse({'message': 'Username is required'}, status=400 )
-        amount = data.get('amount',0.0)
-        if amount == 0.0:
-            return JsonResponse({'message': 'Amount is required'}, status=400)
-        telegram_user = TelegramUser.objects.filter(username=username).first()
-        wallet = Wallet.objects.filter(user=telegram_user).first()
+    user_id = data.get('userId')
+    amount = data.get('amount')
+
+    if user_id == "":
+        return JsonResponse({'message': 'User id is required'}, status=400)
+    if amount == "":
+        return JsonResponse({'message': 'Amount is required'}, status=400)
+    try:
+        telegram_user = TelegramUser.objects.get(telegram_id=user_id)
+        wallet = Wallet.objects.get(user=telegram_user)
         wallet.balance -= float(amount)
         wallet.save()
         return JsonResponse({'message': 'Withdrawal successful'})
-    else:
-        telegram_user = TelegramUser.objects.filter(username=username).first()
-        wallet = Wallet.objects.filter(user=telegram_user).first()
-        return JsonResponse({'balance': wallet.balance})
+    except Exception as e:
+        return JsonResponse({'message': str(e)}, status=500)
 
 
 @csrf_exempt
@@ -203,7 +205,7 @@ def loss(request):
     skipped_players = []
 
     for player_data in playersInGame:
-        player = TelegramUser.objects.filter(telegram_id=player_data.get('playerId')).first()
+        player = TelegramUser.objects.get(telegram_id=player_data.get('playerId'))
         if player is None:
             print(f"Player {player_data.get('playerId')} not found.")
             continue  
@@ -215,7 +217,7 @@ def loss(request):
             continue
 
         with transaction.atomic():
-            wallet = Wallet.objects.filter(user=player).first()
+            wallet = Wallet.objects.get(user=player)
             if wallet is None:
                 print(f"Wallet not found for player {player.telegram_id}.")
                 skipped_players.append(player)
@@ -252,30 +254,6 @@ def commission(request):
     return JsonResponse({'message': 'Commission created successfully'})
 
 
-@csrf_exempt
-def withdraw_success(request):
-    print("withdraw_success = ",request.body)
-    data = json.loads(request.body)
-
-    username = data.get('username','')
-    if username == "":
-        return JsonResponse({'message': 'Username is required'}, status=400)
-    amount = data.get('amount',0.0)
-    if amount == 0.0:
-
-        return JsonResponse({'message': 'Amount is required'}, status=400)
-    telegram_user = TelegramUser.objects.filter(username=username).first()
-    wallet = Wallet.objects.filter(user=telegram_user).first()
-    wallet.balance += float(amount)
-    wallet.save()
-   
-    return JsonResponse({'message': 'Withdrawal successful'})
-
-@csrf_exempt
-def withdraw_error(request):
-   
-    return JsonResponse({'message': 'Withdrawal failed'})
-
 
 
 @csrf_exempt
@@ -308,18 +286,21 @@ def return_funds(request):
 @csrf_exempt
 def create_payment_session(request):
     data = json.loads(request.body)
+    print("data = ",data)
     user_id = data.get('user_id',0)
     amount = data.get('amount',0.0)
     reference_no = data.get('reference_no','')
-    payment_id = data.get('payment_id','')
-    session_id = data.get('session_id','')
+    payment_id = data.get('payment_id','default')
+    session_id = data.get('session_id','default')
     status = data.get('status','')
+    telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
+    if telegram_user is None:
+        return JsonResponse({'message': 'User not found'}, status=404)
 
     payment_session = PaymentSession.objects.create(
-        user_id=user_id,
+        user=telegram_user,
         amount=amount,
         reference_no=reference_no,
-        payment_id=payment_id,
         session_id=session_id,
         status=status
     )
@@ -329,38 +310,48 @@ def create_payment_session(request):
 
 
 
+@csrf_exempt
+def notify_url(request):
+    print("notify_url = ",request.body)
+    data = json.loads(request.body)
+    print("data = ",data)
+   
+    session_id = data.get('sessionId','')
+    payment_session = PaymentSession.objects.get(session_id=session_id)
+    if payment_session is None:
+        return JsonResponse({'message': 'Payment session not found'}, status=404)
+    payment_session.status = data.get('transactionStatus','')
+    if payment_session.status == "SUCCESS":
+        wallet = Wallet.objects.get(user=payment_session.user)
+        wallet.balance += float(payment_session.amount)
+        wallet.save()
+
+    # Notify user via Telegram about transaction status
+    bot_token = "7955523403:AAEavfPGnqIhCT452qlpydrtmicxkiK_wzc"
+    chat_id = payment_session.user.telegram_id
+    if payment_session.status == "SUCCESS":
+        message = f"✅ Payment Successful!\nAmount: {payment_session.amount} ETB has been added to your wallet."
+    else:
+        message = f"❌ Payment Failed!\nTransaction Status: {payment_session.status}"
+        
+    telegram_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message
+    }
+    requests.post(telegram_url, json=payload)
+    payment_session.status = data.get('transactionStatus','')
+    payment_session.save()
+    return JsonResponse({'message': 'Payment session updated successfully'})
 
 
 
 
-
-
-    # data = json.loads(request.body)
+@csrf_exempt
+def notify_url_withdraw(request):
+    return JsonResponse({'message': 'Withdrawal successful'})
     
-    # user_id = data.get('user_id',0)
-    # if user_id == 0:   
-    #     return JsonResponse({'message': 'User id is required'}, status=400)
-    # amount = data.get('amount',0.0)
-    # if amount == 0.0:
-    #     return JsonResponse({'message': 'Amount is required'}, status=400)
-    # session_id = data.get('session_id','')
-    # if session_id == "":
-    #     return JsonResponse({'message': 'Session id is required'}, status=400)
-
+   
     
-    # try:
-    #     telegram_user = TelegramUser.objects.get(telegram_id=user_id)
-    #     if telegram_user is None:
-    #         return JsonResponse({'message': 'User not found'}, status=404)
-    #     payment_session = PaymentSession.objects.create(
-    #         user=telegram_user,
-    #         amount=amount,
-    #         session_id=session_id,
-    #         status="pending"
-    #     )
-    #     return JsonResponse({'message': 'Payment session created successfully'},status=201)
-    # except TelegramUser.DoesNotExist:
-    #     return JsonResponse({'message': 'User not found'}, status=404)
-    # except Exception as e:
-    #     return JsonResponse({'message': str(e)}, status=500)
+
 

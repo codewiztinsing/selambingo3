@@ -177,55 +177,67 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text(f"Insufficient funds. Your current balance is {balance} ETB")
         return ConversationHandler.END
 
-    
-    withdraw_url = "https://api.addispay.et/checkout-api/v1/payment/direct-b2c"
 
+    session_url = "https://gateway.arifpay.net/api/checkout/session"
+    headers = {
+        "x-arifpay-key":"aXOIyscT4H6TO0yrR1V32ehuzXquwlux"
+    }
+    session_payload = {
+            "cancelUrl": "https://api.selambingo.com/payments/cancelUrl/",
+            "phone": phone_number,
+            "email": "selambingo@gmail.com",
+            "nonce": generate_nonce(),
+            "errorUrl": "https://api.selambingo.com/payments/errorUrl/",
+            "notifyUrl": "https://api.selambingo.com/payments/notifyUrl-withdraw/",
+            "successUrl": "https://api.selambingo.com/payments/successUrl/",
+            "paymentMethods": [
+                "TELEBIRR_USSD" 
+            ],
+            "expireDate":  f"2025-09-05T03:45:27",
+            "items": [
+                {
+                    "name": "with from selambingo",
+                    "quantity": 1,
+                    "price": float(amount),
+                    "description": "with from selambingo"
+                }
+            ],
+            "beneficiaries": [
+                {
+                    "accountNumber": "01320811436100", 
+                    "bank": "AWINETAA", 
+                    "amount": float(amount)
+                }
+            ],
+            "lang": "EN"
+        }
 
-    payload =  {
-        'data': {'cancel_url': 'https://t.me/SelamBingo_bot',
-        'success_url': 'https://api.selambingo.com/payments/withdraw/success/', 
-        'error_url': 'https://api.selambingo.com/payments/withdraw/error/', 
-        'order_reason': 'Selam Bingo Withdrawal', 
-        'currency': 'ETB', 
-        'customer_name': update.effective_user.full_name, 
-        'phone_number': phone_number,
-        'nonce': "selam_"+ generate_nonce(64), 
-        'payment_method': 'telebirr', 
-        'total_amount': amount,
-        'tx_ref': "selam_"+ generate_nonce(64), 
-   
-       },
-       'message': 'withdrawal request'
-       }
-    
-
-    
-    print("payload = ",payload)
-    response = requests.post(withdraw_url, json=payload, headers=headers)
-    print("with draw response = ",response)
-
-    if response.status_code == 200:
-        try:
-            # Deduct amount from user's wallet
-            telegram_user = update.effective_user.username
-            deduct_response = requests.post(f'{BACK_URL}/payments/withdraw/', json={
-                'username': telegram_user,
-                'amount': float(amount)
-            })
-            
-            if deduct_response.status_code != 200:
-                await update.message.reply_text("Error: Unable to process withdrawal. Please try again.")
-                return ConversationHandler.END
-                
-        except Exception as e:
-            print(f"Error processing withdrawal: {e}")
-            await update.message.reply_text("Error processing withdrawal. Please try again.")
-            return ConversationHandler.END
-        return ConversationHandler.END
+    response = requests.post(session_url, headers=headers, json=session_payload)
+    session_data = response.json()
+    session_id = session_data.get('data').get('sessionId')
+    withdraw_url = f"https://telebirr-b2c.arifpay.net/api/Telebirr/b2c/transfer"
+    withdraw_payload = {
+        "sessionId": session_id,
+        "phoneNumber": phone_number
+    }
+    withdraw_response = requests.post(withdraw_url, headers=headers, json=withdraw_payload,verify=False)
+    withdraw_data = withdraw_response.json()
+    if withdraw_response.status_code == 200:
+        withdraw_payload = {
+            "userId": user_id,
+            "amount": amount
+        }
+        withdraw_response = requests.post("https://api.selambingo.com/payments/withdraw/", json=withdraw_payload)
+        if withdraw_response.status_code == 200:
+            await update.message.reply_text("✅ Withdrawal request sent successfully! 🎉\n\n📱 Please check your Telebirr app for the transfer.\n\n💰 Your funds will be available shortly.\n\n🙏 Thank you for using Selam Bingo!")
+        else:
+            await update.message.reply_text("Failed to send withdrawal request. Please try again.")
+        
+        
+        await update.message.reply_text("✅ Withdrawal request sent successfully! 🎉\n\n📱 Please check your Telebirr app for the transfer.\n\n💰 Your funds will be available shortly.\n\n🙏 Thank you for using Selam Bingo!")
     else:
-       
-        await update.message.reply_text("አሁን መላክ አይቻልም")
-  
+        await update.message.reply_text("Failed to send withdrawal request. Please try again.")
+    
     
     return ConversationHandler.END
 
@@ -451,7 +463,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
         elif query.data == 'arif':
-            await query.edit_message_text(text="እባክዎ ማስገባት የሚፈልጉትን መጠን ያስገቡ፡-")
+            await query.edit_message_text(text="Please enter the amount you want to deposit:")
             return DEPOSIT_AMOUNT  # Proceed to the next state
         
         elif query.data == 'telebirr':
@@ -513,17 +525,16 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await query.edit_message_text(text="An error occurred. Please try again.")
 
 async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    amount =  float(update.message.text)
-    query = update.callback_query
-    first_name =  update.message.from_user.first_name or "Bot user"
-    last_name =  update.message.from_user.last_name or "Bot Father"
-    username = update.message.from_user.username
-    phone = None
-    if update.message.from_user:
+    try:
+        amount = float(update.message.text)
         user_id = update.message.from_user.id
-        phone = requests.get(f"{BACK_URL}/accounts/filter-users/{user_id}/").json()
-        phone = phone.get('phone',None)
-        if phone is None:
+        first_name = update.message.from_user.first_name or "Bot user"
+        last_name = update.message.from_user.last_name or "Bot Father"
+        username = update.message.from_user.username
+
+        # Check if user exists in database
+        user_response = requests.get(f"{BACK_URL}/accounts/filter-users/{user_id}/")
+        if user_response.status_code != 200:
             keyboard = [
                 [InlineKeyboardButton("Register", callback_data='register')]
             ]
@@ -533,89 +544,91 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 reply_markup=reply_markup
             )
             return ConversationHandler.END
-        
-        
 
-    logger.info(f"Received deposit amount: {amount}")
+        user_data = user_response.json()
+        phone = user_data.get('phone')
+        
+        if not phone:
+            await update.message.reply_text(
+                "Your phone number is not registered. Please register first using /register command."
+            )
+            return ConversationHandler.END
 
-    try:
-        amount = float(amount)
- 
-        reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
         logger.info(f"Received deposit amount: {amount}")
+        reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
 
-        arifpay_checkout_api_url="https://gateway.arifpay.net/api/checkout/telebirr-ussd/transfer/direct"
+        arifpay_checkout_api_url = "https://gateway.arifpay.net/api/checkout/telebirr-ussd/transfer/direct"
+        # Convert datetime to ISO format string
+        expiry_time = (datetime.now() + timedelta(minutes=5)).isoformat()
+        
         payload = {
             "cancelUrl": "https://api.selambingo.com/payments/cancelUrl/",
-            "phone":phone,
-            "email":"telebirrTest@gmail.com",
-            "nonce": generate_nonce(), 
+            "phone": phone,
+            "email": "selambingo@gmail.com",
+            "nonce": generate_nonce(),
             "errorUrl": "https://api.selambingo.com/payments/errorUrl/",
             "notifyUrl": "https://api.selambingo.com/payments/notifyUrl/",
             "successUrl": "https://api.selambingo.com/payments/successUrl/",
             "paymentMethods": [
                 "TELEBIRR_USSD"
             ],
-            "expireDate": (datetime.now() + timedelta(minutes=5)).isoformat(),
+            "expireDate": expiry_time,  # Now using the string format
             "items": [
                 {
                     "name": "bingo game deposit",
                     "quantity": 1,
                     "price": amount,
                     "description": "Arif pay for selam bingo",
-          }
+                }
             ],
             "beneficiaries": [
                 {
                     "accountNumber": "01320811436100", 
                     "bank": "AWINETAA",
-                    "amount":amount
+                    "amount": amount
                 }
             ],
             "lang": "EN"
         }
-        headers = {
-           "x-arifpay-key": "aXOIyscT4H6TO0yrR1V32ehuzXquwlux"
-        }
-        response = requests.post(arifpay_checkout_api_url, json=payload, headers=headers)
-      
         
-        if response.status_code == 200:
-            response_data = response.json().get("data",None).get("transaction",None)
-            if response_data is None:
-                await update.message.reply_text("Failed to initiate payment. Please try again.")
-                return
-            # Create payment session
+        headers = {
+            "x-arifpay-key": "aXOIyscT4H6TO0yrR1V32ehuzXquwlux"
+        }
 
-            print("response_data=",response_data)
-            payment_session_url = f"{BACK_URL}/payments/session/"
+        response = requests.post(arifpay_checkout_api_url, json=payload, headers=headers)
+        if response.status_code == 200:
+            session_id = response.json().get("data", {}).get("sessionId")
+            user_id = update.message.from_user.id
+
             session_payload = {
                 "user_id": user_id,
-                "session_id": response_data.get("sessionId"),
+                "session_id": session_id,
                 "reference_no": reference_no,
                 "amount": amount,
-                "payment_id": response_data.get("paymentId"),
-                "status": "pending"
+                "payment_id": "arifpay",
+                "status": "PENDING"
             }
-            
-            session_response = requests.post(payment_session_url, json=session_payload, headers=headers)
-            
+            session_response = requests.post(f"{BACK_URL}/payments/session/", json=session_payload)
             if session_response.status_code == 201:
                 await update.message.reply_text(
-                    f"Please complete your payment using this link:\n{response_data.get('shortUrl')}\n\n"
-                    "The payment link will expire in 5 minutes."
+                    f"💰 Please complete your payment when Telebirr popup reaches you 📱✨"
+                
                 )
+
             else:
-                await update.message.reply_text("Failed to create payment session. Please try again.")
+                await update.message.reply_text("Failed to create payment session. Please try again later.")
+           
+
         else:
-            await update.message.reply_text("Failed to initiate payment. Please try again.")
-    
-       
+            await update.message.reply_text("Failed to initiate payment. Please try again later.")
+  
     except ValueError:
         await update.message.reply_text("Please enter a valid number.")
     except Exception as e:
-        logger.error(f"Error processing deposit: {e}")
-        await update.message.reply_text("Please try again.")
+        logger.error(f"Error processing deposit: {str(e)}")
+        await update.message.reply_text("An error occurred. Please try again later.")
+    
+    return ConversationHandler.END
 
 
 
@@ -736,14 +749,7 @@ def main() -> None:
         fallbacks=[],
     )
 
-    screenshot_conversation_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(button)],
-        states={
-            SCREENSHOT: [MessageHandler(filters.PHOTO, get_screenshot)]
-        },
-        fallbacks=[],
-    )
-
+  
  
 
     application.add_handler(CommandHandler('start', start))

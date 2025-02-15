@@ -75,7 +75,7 @@ async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = update.message.from_user.username if update.message.from_user.username else update.message.from_user.first_name
     user_data["username"] = username
 
-    url  = f"{BACK_URL}/accounts/filter-users/?username={username}"
+    url  = f"{BACK_URL}/accounts/filter-users/{user_id}/"
     user_exists  = requests.get(url)
     if user_exists.status_code == 200:
         user_exists = user_exists.json()
@@ -166,7 +166,7 @@ async def handle_confirm_password(update: Update, context: ContextTypes.DEFAULT_
         return PASSWORD
     
 
-    response = requests.post(f"{BACK_URL}/accounts/register/", data=user_data)
+    response = requests.post(f"{BACK_URL}/accounts/register/{user_id}/", data=user_data)
 
     if response.status_code == 201:  # Assume 201 means success
         await update.message.reply_text("Registration completed successfully!")

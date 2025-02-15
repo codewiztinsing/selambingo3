@@ -13,12 +13,3 @@ def create_wallet(sender, instance, created, **kwargs):
 
 
 
-# @receiver(post_save, sender=PaymentSession)
-# def update_wallet(sender, instance, created, **kwargs):
-#     print("instance = ",instance)
-#     print("created = ",created)
-#     if created:
-#         if instance.status == "paid":
-#             wallet = Wallet.objects.get(user=instance.user)
-#             wallet.balance += float(instance.amount)
-#         wallet.save()

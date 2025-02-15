@@ -54,13 +54,12 @@ class Charge(models.Model):
 
 class PaymentSession(models.Model):
     user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
-    status = models.CharField(max_length=255,choices=[('pending','pending'),('paid','paid'),('failed','failed')])
-    session_id = models.CharField(max_length=255,unique=True)
+    status = models.CharField(max_length=255,choices=[('PENDING','PENDING'),('SUCCESS','SUCCESS'),('FAILED','FAILED')])
+    session_id = models.CharField(max_length=255,blank=True,null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     reference_no = models.CharField(max_length=255)
-    payment_id = models.CharField(max_length=255)
 
     def __str__(self):
         return f"{self.user.username} ({self.session_id})"  

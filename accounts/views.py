@@ -42,9 +42,9 @@ class FilterUsersByPhoneView(generics.RetrieveAPIView):
                     return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
             except TelegramUser.DoesNotExist:
                 return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-       
 
 
+ 
 class AllUsersView(generics.ListAPIView):
     serializer_class = UserRegistrationSerializer
     queryset = TelegramUser.objects.all()
