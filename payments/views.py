@@ -147,22 +147,40 @@ def error(request):
 @csrf_exempt
 def win(request):
     # Get payment data from POST request
+
+        #  playerId,
+        # amount ,
+        # gameId
     data = json.loads(request.body)
-    username = data.get('username','')
+    user_id = data.get('playerId','')
     game_id = data.get('gameId','')
     amount = data.get('amount',0.0)
+    if user_id == "":
+        return JsonResponse({'message': 'User id is required'}, status=400)
+    if game_id == "":
+        return JsonResponse({'message': 'Game id is required'}, status=400)
+    if amount == "":
+        return JsonResponse({'message': 'Amount is required'}, status=400)
+
+    try:
+        player = TelegramUser.objects.get(telegram_id=user_id)
+    except TelegramUser.DoesNotExist:
+        return JsonResponse({'message': 'Player not found'}, status=404)
+
+    if player is None:
+        return JsonResponse({'message': 'Player not found'}, status=404)
     
-    player = TelegramUser.objects.filter(username=username).first()
-    win_tracker = WinTracker.objects.filter(game_id=game_id, user=player).first()
+    win_tracker = WinTracker.objects.filter(game_id=game_id).first()
+
  
     if win_tracker is not None:
         return JsonResponse({'message': f'Player already won this game {game_id} '}, status=400)
     else:
-        wallet = Wallet.objects.filter(user=player).first()
+        wallet = Wallet.objects.get(user=player)
         wallet.balance += float(amount)
         win_tracker = WinTracker.objects.create(user=player, game_id=game_id, win_amount=float(amount))
         wallet.save()
-        return JsonResponse({'message': f'Win amount {amount} added to {username} successfully'})
+        return JsonResponse({'message': f'Win amount {amount} added to {player.username} successfully'})
 
 
 
@@ -327,7 +345,7 @@ def notify_url(request):
         wallet.save()
 
     # Notify user via Telegram about transaction status
-    bot_token = "7955523403:AAEavfPGnqIhCT452qlpydrtmicxkiK_wzc"
+    bot_token = "6968354140:AAHc2VCRTibuuOnvqOHJDcsWXA7sJMpJ8ww"
     chat_id = payment_session.user.telegram_id
     if payment_session.status == "SUCCESS":
         message = f"✅ Payment Successful!\nAmount: {payment_session.amount} ETB has been added to your wallet."

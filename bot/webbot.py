@@ -233,8 +233,6 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         else:
             await update.message.reply_text("Failed to send withdrawal request. Please try again.")
         
-        
-        await update.message.reply_text("✅ Withdrawal request sent successfully! 🎉\n\n📱 Please check your Telebirr app for the transfer.\n\n💰 Your funds will be available shortly.\n\n🙏 Thank you for using Selam Bingo!")
     else:
         await update.message.reply_text("Failed to send withdrawal request. Please try again.")
     
@@ -730,10 +728,7 @@ def main() -> None:
     register_conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('register', begin_register)],
         states={
-            PHONE: [MessageHandler(filters.CONTACT, handle_phone)],
-            EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_email)],
-            PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_password)],
-            CONFIRM_PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_confirm_password)],
+            PHONE: [MessageHandler(filters.CONTACT, handle_phone)]
         },
         fallbacks=[CommandHandler('cancel', cancel)],
     )
