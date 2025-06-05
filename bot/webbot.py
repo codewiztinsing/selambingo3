@@ -26,6 +26,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 from telegram import BotCommand
+from handle_others import handle_deposit
 from register import *
 
 
@@ -61,6 +62,8 @@ SCREENSHOT = range(2)
 PHONE_NUMBER,WITHDRAW_AMOUNT_CONFIRM,WITHDRAW_AMOUNT_CANCEL,CHOOSE_PAYMENT_METHOD = range(2,6)
 
 
+
+
 async def get_screenshot(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     photo = update.message.photo[-1]
     file_id = photo.file_id
@@ -85,7 +88,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
     
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
+    await update.message.reply_text('Welcome to Bilen Bingo! Select an option:', reply_markup=reply_markup)
 
 
 # Function to create the play options keyboard
@@ -104,13 +107,13 @@ def play_options_keyboard() -> InlineKeyboardMarkup:
 
 
 async def get_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    phone_number = update.message.text
-    # Validate phone number format
-    if not phone_number.startswith('09') or len(phone_number) != 10 or not phone_number.isdigit():
-        await update.message.reply_text("Invalid phone number format. Please enter a valid phone number starting with 09 and 10 digits long.")
-        return
+    # phone_number = update.message.text
+    # # Validate phone number format
+    # if not phone_number.startswith('09') or len(phone_number) != 10 or not phone_number.isdigit():
+    #     await update.message.reply_text("Invalid phone number format. Please enter a valid phone number starting with 09 and 10 digits long.")
+    #     return
 
-    context.user_data['phone_number'] = phone_number
+    # context.user_data['phone_number'] = phone_number
 
     await update.message.reply_text("Please enter the amount you want to withdraw:")
     return WITHDRAW_AMOUNT_CONFIRM
@@ -118,8 +121,7 @@ async def get_phone_number(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 def deposit_opitions_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
                 [
-                InlineKeyboardButton("Arif pay", callback_data='arif'),
-                 InlineKeyboardButton("Manual", callback_data='manual')
+                 InlineKeyboardButton("Other", callback_data='other')
                  ],
                  [
                 InlineKeyboardButton("🔙 Back to Menu", callback_data='menu')
@@ -160,6 +162,11 @@ async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     amount = update.message.text
+    if float(amount) < 50:
+        await update.message.reply_text("The minimum withdrawal amount is 50 ETB. Please enter a valid amount.")
+        return WITHDRAW_AMOUNT_CONFIRM
+
+
     phone_number = context.user_data.get('phone_number')
     # Check user's wallet balance before processing withdrawal
     telegram_user = update.effective_user.username
@@ -213,8 +220,11 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         }
 
     response = requests.post(session_url, headers=headers, json=session_payload)
+    print("response = ",response.text)
     session_data = response.json()
+    print("session_data = ",session_data)
     session_id = session_data.get('data').get('sessionId')
+    print("session_id = ",session_id)
     withdraw_url = f"https://telebirr-b2c.arifpay.net/api/Telebirr/b2c/transfer"
     withdraw_payload = {
         "sessionId": session_id,
@@ -276,7 +286,7 @@ def instructions_options_keyboard() -> InlineKeyboardMarkup:
 # Function to create the play options keyboard
 def support_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
-        [InlineKeyboardButton("📞 Support",  url='https://t.me/Selam_bingo_bot')],
+        [InlineKeyboardButton("📞 Support",  url='https://t.me/@ bilenbingosupport')],
     ]
     return InlineKeyboardMarkup(keyboard)
 
@@ -333,6 +343,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if query.data == 'play_demo':
             player_id = query.from_user.id
             username = query.from_user.username
+            user_id = query.from_user.id
             bet_amount = 0  # Demo game has no bet amount
             wallet_amount = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json().get('balance',0)
             web_app_url = (
@@ -400,6 +411,11 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             with open(local_video_path, 'rb') as video_file:
                 await context.bot.send_video(chat_id=chat_id, video=video_file, caption=caption)
 
+        elif query.data == 'get_deposit_amount':
+            await query.edit_message_text(
+                text="send us message from the bank or telebirr")
+            
+            return DEPOSIT_AMOUNT
 
         elif query.data == 'check_balance':
             
@@ -423,8 +439,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"💰 Wallet Balance: {balance:.2f} ETB\n"
                 "------------------------\n"
                 "💳 Payment Methods Available:\n"
-                "• Arif Pay\n" 
-                "• Manual Transfer\n\n"
+                "• Manual Deposit\n\n"
                 "Use /deposit to add funds"
             )
             await query.edit_message_text(text=payment_summary)
@@ -455,33 +470,18 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         elif query.data == 'deposit':
             keyboard = [
-                [InlineKeyboardButton("Arif pay", callback_data='arif'),
-                 InlineKeyboardButton("Manual", callback_data='manual')]
+                [
+                 InlineKeyboardButton("Send to us", callback_data='get_deposit_amount')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("Select deposit method\nNote: Don't pay more than 2% as a transaction fee for each manual deposit", reply_markup=reply_markup)
-        elif query.data == 'arif':
-            await query.edit_message_text(text="Please enter the amount you want to deposit:")
-            return DEPOSIT_AMOUNT  # Proceed to the next state
+            await query.edit_message_text(""" እባክዎ ክፍያውን ከሚከተሉት መለያዎች ወደ አንዱ ያስተላልፉ፡-\n📱 ቴሌብር፡ 0927832338\n🏦 ንግድ ባንክ፡ 1000095634037\nከከፈሉ በኋላ ከባንክ ወይም ከቴሌቢር የደረሰዎትን የማረጋገጫ መልእክት ላኩልን።
+            """, reply_markup=reply_markup)
         
-        elif query.data == 'telebirr':
-            await query.edit_message_text("እባኮትን ስልክ ቁጥርዎን በቅርጸት ያስገቡ፡ 09xxxxxxxx")
-            return PHONE_NUMBER  # Proceed to get phone number state
+   
+        elif query.data == 'other':
+            await handle_deposit(update,context)
 
-
-        elif query.data == 'manual':
-            await query.edit_message_text(text="Please enter the amount you want to deposit:")
-            amount = query.message.text
-        
-        
-            content = f"""
-                Thank you for choosing our services. To complete your payment, please via  {amount} ETB  to  via Telebirr to +251991221912. 📲 Once the payment has been processed, kindly send us a screenshot of the transaction confirmation for verification. 📸
-                If you have any questions or require any assistance, please do not hesitate to contact us. We appreciate your business and look forward to serving you. 🙏
-                Best regards
-                """
-    
-            await query.edit_message_text(text=content)
-            return SCREENSHOT  # Proceed to the next state to get the screenshot
+            
        
 
         elif query.data == 'cancel':
@@ -523,109 +523,36 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await query.edit_message_text(text="An error occurred. Please try again.")
 
 async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = update.message.text
+    message = """ 
+    Dear alako 
+    You have transferred ETB 105.00 to ABEBA MELKIE (2519****1122) on 27/05/2025 14:04:57. Your transaction number is CER0J3QVB0. The service fee is  ETB 1.74 and  15% VAT on the service fee is ETB 0.26. Your current E-Money Account  balance is ETB 59.62. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/CER0J3QVB0.
+    Thank you for using telebirr
+    Ethio telecom
+
+    """
     try:
-        amount = float(update.message.text)
-        user_id = update.message.from_user.id
-        first_name = update.message.from_user.first_name or "Bot user"
-        last_name = update.message.from_user.last_name or "Bot Father"
-        username = update.message.from_user.username
-
-        # Check if user exists in database
-        user_response = requests.get(f"{BACK_URL}/accounts/filter-users/{user_id}/")
-        if user_response.status_code != 200:
-            keyboard = [
-                [InlineKeyboardButton("Register", callback_data='register')]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text(
-                "You need to register first before making a deposit. Please click Register below.",
-                reply_markup=reply_markup
-            )
-            return ConversationHandler.END
-
-        user_data = user_response.json()
-        phone = user_data.get('phone')
+        # Extract amount using regex
+        import re
         
-        if not phone:
-            await update.message.reply_text(
-                "Your phone number is not registered. Please register first using /register command."
-            )
-            return ConversationHandler.END
+        # Find amount pattern "ETB X.XX" or "ETB X"
+        amount_match = re.search(r'ETB\s+(\d+(?:\.\d{2})?)', message)
+        amount = amount_match.group(1) if amount_match else None
 
-        logger.info(f"Received deposit amount: {amount}")
-        reference_no = f"selam_bingo_{first_name}_{datetime.now().second}"
+        # Find transaction number after "transaction number is"
+        transaction_match = re.search(r'transaction number is (\w+)', message)
+        transaction_number = transaction_match.group(1) if transaction_match else None
+        print("amount = ",amount)
+        print("transaction_number = ",transaction_number)
 
-        arifpay_checkout_api_url = "https://gateway.arifpay.net/api/checkout/telebirr-ussd/transfer/direct"
-        # Convert datetime to ISO format string
-        expiry_time = (datetime.now() + timedelta(minutes=5)).isoformat()
-        
-        payload = {
-            "cancelUrl": "https://api.selambingo.com/payments/cancelUrl/",
-            "phone": phone,
-            "email": "selambingo@gmail.com",
-            "nonce": generate_nonce(),
-            "errorUrl": "https://api.selambingo.com/payments/errorUrl/",
-            "notifyUrl": "https://api.selambingo.com/payments/notifyUrl/",
-            "successUrl": "https://api.selambingo.com/payments/successUrl/",
-            "paymentMethods": [
-                "TELEBIRR_USSD"
-            ],
-            "expireDate": expiry_time,  # Now using the string format
-            "items": [
-                {
-                    "name": "bingo game deposit",
-                    "quantity": 1,
-                    "price": amount,
-                    "description": "Arif pay for selam bingo",
-                }
-            ],
-            "beneficiaries": [
-                {
-                    "accountNumber": "01320811436100", 
-                    "bank": "AWINETAA",
-                    "amount": amount
-                }
-            ],
-            "lang": "EN"
-        }
-        
-        headers = {
-            "x-arifpay-key": "aXOIyscT4H6TO0yrR1V32ehuzXquwlux"
-        }
-
-        response = requests.post(arifpay_checkout_api_url, json=payload, headers=headers)
-        if response.status_code == 200:
-            session_id = response.json().get("data", {}).get("sessionId")
-            user_id = update.message.from_user.id
-
-            session_payload = {
-                "user_id": user_id,
-                "session_id": session_id,
-                "reference_no": reference_no,
-                "amount": amount,
-                "payment_id": "arifpay",
-                "status": "PENDING"
-            }
-            session_response = requests.post(f"{BACK_URL}/payments/session/", json=session_payload)
-            if session_response.status_code == 201:
-                await update.message.reply_text(
-                    f"💰 Please complete your payment when Telebirr popup reaches you 📱✨"
-                
-                )
-
-            else:
-                await update.message.reply_text("Failed to create payment session. Please try again later.")
-           
-
-        else:
-            await update.message.reply_text("Failed to initiate payment. Please try again later.")
-  
-    except ValueError:
-        await update.message.reply_text("Please enter a valid number.")
+        if not amount or not transaction_number:
+            raise ValueError("Could not extract transaction details")
+        await update.message.reply_text(f"Amount: {amount} ETB\nTransaction number: {transaction_number}")
     except Exception as e:
-        logger.error(f"Error processing deposit: {str(e)}")
-        await update.message.reply_text("An error occurred. Please try again later.")
-    
+        logger.error(f"Error extracting transaction details: {e}")
+        await update.message.reply_text("Could not process transaction details. Please contact support.")
+
+      
     return ConversationHandler.END
 
 
@@ -723,8 +650,8 @@ async def broadcast_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main() -> None:
-    application = ApplicationBuilder().token(BOT_TOKEN).post_init(post_init).build()
-
+    # application = ApplicationBuilder().token(BOT_TOKEN).post_init(post_init).build()
+    application = ApplicationBuilder().token("7774913647:AAGx1yP7Puq1TXRdpsa6dMxbZsiS1yXZiJ0").post_init(post_init).build()
     register_conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('register', begin_register)],
         states={
