@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Wallet,Commission,Charge,WinTracker,PaymentSession
+from .models import Wallet,Commission,Charge,WinTracker,PaymentSession,DepositMessage
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -78,3 +78,23 @@ class PaymentSessionAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
+
+@admin.register(DepositMessage)
+class DepositMessageAdmin(admin.ModelAdmin):
+    list_display = ('message', 'amount', 'transaction_number', 'created_at', 'updated_at')
+    list_filter = ('created_at', 'updated_at')
+    search_fields = ('message', 'transaction_number')
+    readonly_fields = ('created_at', 'updated_at')
+
+    fieldsets = (
+        (None, {
+            'fields': ('message', 'amount', 'transaction_number')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+

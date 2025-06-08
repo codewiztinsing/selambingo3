@@ -524,13 +524,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.message.text
-    message = """ 
-    Dear alako 
-    You have transferred ETB 105.00 to ABEBA MELKIE (2519****1122) on 27/05/2025 14:04:57. Your transaction number is CER0J3QVB0. The service fee is  ETB 1.74 and  15% VAT on the service fee is ETB 0.26. Your current E-Money Account  balance is ETB 59.62. To download your payment information please click this link: https://transactioninfo.ethiotelecom.et/receipt/CER0J3QVB0.
-    Thank you for using telebirr
-    Ethio telecom
 
-    """
     try:
         # Extract amount using regex
         import re
@@ -542,8 +536,20 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         # Find transaction number after "transaction number is"
         transaction_match = re.search(r'transaction number is (\w+)', message)
         transaction_number = transaction_match.group(1) if transaction_match else None
-        print("amount = ",amount)
+        print("transaction_match = ",amount)
         print("transaction_number = ",transaction_number)
+        data = {
+            "user_id": update.effective_user.id,
+            "username": update.effective_user.username,
+            "amount": amount,
+            "transaction_number": transaction_number
+        }
+        response = requests.post(f'{BACK_URL}/payments/deposit/', json=data)
+    
+        if response.status_code == 200:
+            await update.message.reply_text(f"{response.json().get('message')}")
+        else:
+            await update.message.reply_text(f"{response.json().get('message')}")
 
         if not amount or not transaction_number:
             raise ValueError("Could not extract transaction details")

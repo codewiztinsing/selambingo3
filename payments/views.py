@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from accounts.models import TelegramUser
-from .models import Wallet,Commission,Charge,WinTracker,PaymentSession
+from .models import Wallet,Commission,Charge,WinTracker,PaymentSession,DepositMessage
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 import requests
@@ -372,4 +372,61 @@ def notify_url_withdraw(request):
    
     
 
+
+
+@csrf_exempt
+def deposit(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        print("data = ",data)
+        user_id = data.get('user_id',0)
+        amount = data.get('amount',0.0)
+        transaction_number = data.get('transaction_number','')
+        
+        # Check if transaction number already exists
+        existing_deposit = DepositMessage.objects.filter(transaction_number=transaction_number).first()
+        print("existing_deposit = ",existing_deposit)
+        if existing_deposit is None:
+            return JsonResponse({'message': 'Transaction number does not exist'})
+    
+        telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
+        if telegram_user is None:
+            return JsonResponse({'message': 'User not found'})
+        wallet = Wallet.objects.get(user=telegram_user)
+        wallet.balance += existing_deposit.amount
+        wallet.save()
+        existing_deposit.delete()
+        return JsonResponse({'message': 'Deposit successful'})
+
+
+@csrf_exempt
+def deposit_message(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        message = data.get('message','')
+        import re
+        
+        # Find amount pattern "ETB X.XX" or "ETB X"
+        amount_match = re.search(r'ETB\s+(\d+(?:\.\d{2})?)', message)
+        amount = float(amount_match.group(1)) if amount_match else 0.0
+
+        # Find transaction number after "transaction number is"
+        transaction_match = re.search(r'transaction number is (\w+)', message) 
+        transaction_number = transaction_match.group(1) 
+
+        if not amount or not transaction_number:
+            return JsonResponse({'error': 'Could not extract transaction details'}, status=400)
+    
+       
+        DepositMessage.objects.create(message=message, amount=amount, transaction_number=transaction_number)
+        return JsonResponse({'message': 'Deposit message created successfully'})
+    else:
+        message = []
+        for message in DepositMessage.objects.all():    
+            message.append({
+                'message': message.message,
+                'amount': message.amount,
+                'transaction_number': message.transaction_number
+            })
+        return JsonResponse({'message': message}, status=200)
 

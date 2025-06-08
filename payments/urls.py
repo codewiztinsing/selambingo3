@@ -17,5 +17,7 @@ urlpatterns = [
     path('session/', create_payment_session,name="create-payment-session"),
     path("notifyUrl/", notify_url,name="notify-url"),
     path("notifyUrl-withdraw/", notify_url_withdraw,name="notify-url-withdraw"),
+    path('deposit/', deposit,name="deposit"),
+    path('message/', deposit_message,name="deposit-message"),
 ]
 

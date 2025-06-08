@@ -3,7 +3,6 @@ from django.db import models
 
 
 class Wallet(models.Model):
-
     user = models.OneToOneField(TelegramUser, on_delete=models.CASCADE, related_name='wallet')
     balance = models.FloatField(default=0.00)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -63,3 +62,16 @@ class PaymentSession(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.session_id})"  
+
+
+
+class DepositMessage(models.Model):
+    message = models.TextField()
+    amount = models.FloatField(default=0.00)
+    transaction_number = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.transaction_number} - {self.amount}"
+
