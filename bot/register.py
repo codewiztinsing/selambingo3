@@ -16,7 +16,7 @@ from telegram import (
     InlineKeyboardButton,
 )
 
-BACK_URL = config('BACK_URL')
+BACK_URL = "https://api.bilenbingo.com/"
 user_data = {}  
 # Define states for conversation
 PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(4)

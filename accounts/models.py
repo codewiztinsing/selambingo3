@@ -4,6 +4,42 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 
 
+class User(AbstractUser):
+    username = models.CharField(
+        _('username'),
+        max_length=150,
+        unique=True,
+        validators=[RegexValidator(
+            regex=r'^[\w.@+-]+$',
+            message=_('Enter a valid username. This value may contain only letters, '
+                     'numbers, and @/./+/-/_ characters.')
+        )]
+    )
+    email = models.EmailField(_('email address'), unique=True)
+    first_name = models.CharField(_('first name'), max_length=150, blank=True)
+    last_name = models.CharField(_('last name'), max_length=150, blank=True)
+    is_active = models.BooleanField(_('active'), default=True)
+    date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
+    
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name=_('groups'),
+        blank=True,
+        related_name='custom_user_set',
+        related_query_name='custom_user'
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name=_('user permissions'), 
+        blank=True,
+        related_name='custom_user_set',
+        related_query_name='custom_user'
+    )
+
+    def __str__(self):
+        return self.username
+
+
 class TelegramUser(AbstractUser):
 
     username = models.CharField(

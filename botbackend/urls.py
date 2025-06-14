@@ -17,6 +17,7 @@ def instruction(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("support/",include("support.urls")),
     path("",include("bot.urls")),
     path("done/",landing),
     # path("publish/",publish),

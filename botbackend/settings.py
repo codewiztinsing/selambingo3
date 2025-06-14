@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -14,15 +13,17 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["api.selambingo.com","188.245.75.205","127.0.0.1","localhost"]
+ALLOWED_HOSTS = ["api.bilenbingo.com","www.bilenbingo.com","157.180.28.161","bilenbingo.com"]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://api.selambingo.com'
+    'https://api.bilenbingo.com',
+    'https://www.bilenbingo.com'
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://selambingo.com"
+    "https://www.bilenbingo.com",
+    "https://api.bilenbingo.com"
 ]
 
 # Application definition
@@ -43,7 +44,8 @@ INSTALLED_APPS = [
     'djoser',
     'compressor', 
     'accounts',
-    "corsheaders"
+    "corsheaders",
+    "support"
 ]
 
 MIDDLEWARE = [
@@ -90,7 +92,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bot',
-        'USER': 'postgres',
+        'USER': 'ayalew',
         'PASSWORD': '123456',
         'HOST': 'localhost',  # Set to the database server address, e.g., an IP address.
         'PORT': '5432',       # Default PostgreSQL port.
@@ -155,5 +157,4 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # AUTH_USER_MODEL = 'accounts.TelegramUser'
-
 

@@ -7,7 +7,7 @@ from .models import Wallet,PaymentSession
 @receiver(post_save, sender=TelegramUser)
 def create_wallet(sender, instance, created, **kwargs):
     if created:
-        Wallet.objects.create(user=instance, balance=0.00)
+        Wallet.objects.create(user=instance, balance=20.00)
 
 
 

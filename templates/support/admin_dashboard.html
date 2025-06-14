@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+        <div class="flex items-center space-x-4">
+            <span class="text-gray-600 dark:text-gray-300">Welcome, {{ request.user.username }}</span>
+            <a href="{% url 'support:support_login' %}" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Logout</a>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="flex mb-6">
+        <div class="w-64 bg-white dark:bg-gray-800 shadow rounded-lg p-4 mr-6">
+            <nav>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="flex items-center p-2 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
+                                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
+                            </svg>
+                            <span class="ml-3">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'support:users' %}" class="flex items-center p-2 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                            </svg>
+                            <span class="ml-3">Users</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'support:transcations' %}" class="flex items-center p-2 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path>
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="ml-3">Transactions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'support:reports' %}" class="flex items-center p-2 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="ml-3">Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'support:settings' %}" class="flex items-center p-2 text-gray-900 dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span class="ml-3">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="flex-1">
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- Total Users -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Total Users</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ total_users }}</p>
+            <p class="text-sm text-gray-500">Active users: {{ total_users }}</p>
+        </div>
+
+        <!-- Total Transactions -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Total Transactions</h3>
+            <p class="text-3xl font-bold text-green-600">{{ total_payments }}</p>
+            <p class="text-sm text-gray-500">Today: {{ daily_transactions }}</p>
+        </div>
+
+        <!-- Total Revenue -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Total Revenue</h3>
+            <p class="text-3xl font-bold text-purple-600">{{ total_revenue }} Birr</p>
+            <p class="text-sm text-gray-500">This month: {{ monthly_revenue }} Birr</p>
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+        <div class="flex items-center space-x-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                <input type="date" id="start_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                <input type="date" id="end_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <button onclick="filterData()" class="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Filter</button>
+        </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">User Management</h2>
+            <button onclick="showAddUserModal()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Add User</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Balance</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for user in users %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ user.telegram_id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ user.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ user.balance }} Birr</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button onclick="editUser({{ user.id }})" class="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">Edit</button>
+                            <button onclick="deleteUser({{ user.id }})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+
+    <!-- Payment Requests -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Payment Requests</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {% for payment in payments %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ payment.user.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ payment.amount }} Birr</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ payment.status }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">{{ payment.created_at }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <button onclick="updatePaymentStatus({{ payment.id }}, 'approved')" class="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">Approve</button>
+                            <button onclick="updatePaymentStatus({{ payment.id }}, 'rejected')" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterData() {
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    // Add AJAX call to filter data based on dates
+}
+
+function closeModal() {
+    const editModal = document.getElementById('editUserModal');
+    const editForm = document.getElementById('editUserForm');
+    const editUsername = document.getElementById('edit-username');
+    const editFirstName = document.getElementById('edit-first_name'); 
+    const editLastName = document.getElementById('edit-last_name');
+
+    if (editModal) editModal.classList.add('hidden');
+    if (editForm) editForm.reset();
+    if (editUsername) editUsername.value = '';
+    if (editFirstName) editFirstName.value = '';
+    if (editLastName) editLastName.value = '';
+}
+
+
+function showAddUserModal() {
+
+   
+ 
+
+    // Get the modal element
+    const modal = document.getElementById('addUserModal');
+    if (!modal) {
+        // Create modal HTML
+        const modalHTML = `
+            <div id="addUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="mt-3 text-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Add New User</h3>
+                        <div class="mt-2 px-7 py-3">
+                            <form id="addUserForm">
+                                <div class="mb-4">
+                                    <input type="text" id="username" name="username" placeholder="Username" 
+                                        class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div class="mb-4">
+                                    <input type="text" id="first_name" name="first_name" placeholder="First Name"
+                                        class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div class="mb-4">
+                                    <input type="text" id="last_name" name="last_name" placeholder="Last Name"
+                                        class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div class="mb-4">
+                                    <input type="tel" id="phone" name="phone" placeholder="Phone"
+                                        class="w-full px-3 py-2 border rounded-md">
+                                </div>
+
+                                <div class="mb-4">
+                                    <input type="password" id="password" name="password" placeholder="Password"
+                                        class="w-full px-3 py-2 border rounded-md">
+                                </div>
+                                <div class="mb-4">
+                                    <select id="role" name="role" class="w-full px-3 py-2 border rounded-md">
+                                        <option value="user">User</option>
+                                        <option value="support">Support</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-end mt-4">
+                                    <button type="button" onclick="closeModal()" 
+                                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2">Cancel</button>
+                                    <button type="submit"
+                                        class="px-4 py-2 bg-blue-500 text-white rounded-md">Add User</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    // Show modal
+    document.getElementById('addUserModal').classList.remove('hidden');
+
+    // Handle form submission
+    document.getElementById('addUserForm').onsubmit = function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        fetch('', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams({
+                action: 'create',
+                model_type: 'user',
+                username: formData.get('username'),
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                phone: formData.get('phone'),
+                role: formData.get('role')
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+             
+
+            // Show success toast
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50';
+            toast.textContent = 'User created successfully';
+            document.body.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                closeModal();
+                toast.remove();
+                location.reload();
+            }, 3000);
+            } else {
+                alert('Failed to create user');
+            }
+        })
+        .then(data => {
+            if (data.message) {
+                closeModal();
+                location.reload();
+            }
+        });
+    };
+
+    // Add modal implementation for adding new user
+}
+
+function editUser(userId) {
+
+    const users = {{ users|safe }};
+    console.log(users);
+    // Get existing user data
+    user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    // Create modal if it doesn't exist
+    if (!document.getElementById('editUserModal')) {
+        const modalHTML = `
+            <div id="editUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="mt-3">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Edit User</h3>
+                        <form id="editUserForm" class="mt-4">
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                                    Username
+                                </label>
+                                <input type="text" name="username" id="edit-username"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="first_name">
+                                    First Name
+                                </label>
+                                <input type="text" name="first_name" id="edit-first_name"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="last_name">
+                                    Last Name
+                                </label>
+                                <input type="text" name="last_name" id="edit-last_name"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
+                                    Phone
+                                </label>
+                                <input type="text" name="phone" id="edit-phone"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
+                                    Role
+                                </label>
+                                
+                            </div>
+                            <div class="flex items-center justify-end mt-6">
+                                <button type="button" onclick="closeModal()"
+                                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md mr-2">Cancel</button>
+                                <button type="submit"
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-md">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>`;
+
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    // Show modal and populate fields
+    document.getElementById('editUserModal').classList.remove('hidden');
+    document.getElementById('edit-username').value = user.username;
+    document.getElementById('edit-first_name').value = user.first_name;
+    document.getElementById('edit-last_name').value = user.last_name;
+    document.getElementById('edit-phone').value = user.phone;
+
+
+
+    // Handle form submission
+    document.getElementById('editUserForm').onsubmit = function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        fetch('', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams({
+                action: 'update',
+                model_type: 'user',
+                id: userId,
+                username: formData.get('username'),
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                phone: formData.get('phone')
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                closeModal();
+                location.reload();
+            }
+        });
+    };
+
+    // Add implementation for editing user
+}
+
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        fetch('', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `action=delete&model_type=user&id=${userId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                location.reload();
+            }
+        });
+    }
+}
+
+function updatePaymentStatus(paymentId, status) {
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `action=update&model_type=payment&id=${paymentId}&status=${status}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            location.reload();
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -422,11 +422,44 @@ def deposit_message(request):
         return JsonResponse({'message': 'Deposit message created successfully'})
     else:
         message = []
-        for message in DepositMessage.objects.all():    
+        for m in DepositMessage.objects.all():    
             message.append({
-                'message': message.message,
-                'amount': message.amount,
-                'transaction_number': message.transaction_number
+                'message': m.message,
+                'amount': m.amount,
+                'transaction_number': m.transaction_number
             })
         return JsonResponse({'message': message}, status=200)
+
+
+
+
+@csrf_exempt
+def add_balance(request):
+    data = json.loads(request.body)
+    user_id = data.get('user_id',0)
+    amount = data.get('amount',0.0)
+    telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
+    if telegram_user is None:
+        return JsonResponse({'message': 'User not found'}, status=404)
+    wallet = Wallet.objects.get(user=telegram_user)
+    wallet.balance += float(amount)
+    wallet.save()
+    return JsonResponse({'message': 'Balance added successfully'})
+
+
+
+@csrf_exempt
+def withdrawal_request(request):
+    data = json.loads(request.body)
+    user_id = data.get('user_id',0)
+    amount = data.get('amount',0.0)
+    telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
+    if telegram_user is None:
+        return JsonResponse({'message': 'User not found'}, status=404)
+    wallet = Wallet.objects.get(user=telegram_user)
+    if wallet.balance < float(amount):
+        return JsonResponse({'message': 'Insufficient balance'}, status=400)
+    wallet.balance -= float(amount)
+    wallet.save()
+    return JsonResponse({'message': 'Withdrawal request created successfully'})
 
