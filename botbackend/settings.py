@@ -13,17 +13,24 @@ SECRET_KEY = "django-insecure-sx63r_whu9n(z17980r#0#^m(%^u@y1=6^x)k2(0d^9((zp=@7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["api.bilenbingo.com","www.bilenbingo.com","157.180.28.161","bilenbingo.com"]
+ALLOWED_HOSTS = [
+    "api.selambingo.com",
+    "www.selambingo.com", 
+    "selambingo.com",
+    
+]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://api.bilenbingo.com',
-    'https://www.bilenbingo.com'
+
+    'https://www.selambingo.com',
+    "https://selambingo.com",
+    "https://api.selambingo.com"
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://www.bilenbingo.com",
-    "https://api.bilenbingo.com"
+    "https://www.selambingo.com",
+    "https://api.selambingo.com",
+    "https://selambingo.com"
 ]
 
 # Application definition
@@ -45,7 +52,8 @@ INSTALLED_APPS = [
     'compressor', 
     'accounts',
     "corsheaders",
-    "support"
+    "support",
+    "posts"
 ]
 
 MIDDLEWARE = [
@@ -92,8 +100,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bot',
-        'USER': 'ayalew',
-        'PASSWORD': '123456',
+        'USER': 'selambingo',
+        'PASSWORD': '18171250',
         'HOST': 'localhost',  # Set to the database server address, e.g., an IP address.
         'PORT': '5432',       # Default PostgreSQL port.
     }

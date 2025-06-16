@@ -4,7 +4,7 @@ from django.db import models
 
 class Wallet(models.Model):
     user = models.OneToOneField(TelegramUser, on_delete=models.CASCADE, related_name='wallet')
-    balance = models.FloatField(default=20)
+    balance = models.FloatField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -16,7 +16,7 @@ from telegram import (
     InlineKeyboardButton,
 )
 
-BACK_URL = "https://api.bilenbingo.com/"
+BACK_URL = "https://api.selambingo.com/"
 user_data = {}  
 # Define states for conversation
 PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(4)
@@ -76,7 +76,9 @@ async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data["username"] = username
 
     url  = f"{BACK_URL}/accounts/filter-users/{user_id}/"
+    print("url",url)
     user_exists  = requests.get(url)
+    print("user_exists",user_exists.json())
     if user_exists.status_code == 200:
         user_exists = user_exists.json()
         

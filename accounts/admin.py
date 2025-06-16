@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 from .models import TelegramUser
 
-@admin.register(TelegramUser)
+
 class TelegramUserAdmin(UserAdmin):
     list_display = ('username', 'telegram_id', 'telegram_username', 'phone', 'is_active')
     list_filter = ('is_staff', 'is_active', 'is_bot')
@@ -27,3 +27,5 @@ class TelegramUserAdmin(UserAdmin):
     readonly_fields = ('created_at', 'updated_at')
 
 
+
+admin.site.register(TelegramUser, TelegramUserAdmin)
