@@ -17,10 +17,13 @@ ALLOWED_HOSTS = [
     "api.selambingo.com",
     "www.selambingo.com", 
     "selambingo.com",
+    "localhost",
+    "http://localhost:3000",
     
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
 
     'https://www.selambingo.com',
     "https://selambingo.com",
@@ -28,6 +31,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
     "https://www.selambingo.com",
     "https://api.selambingo.com",
     "https://selambingo.com"

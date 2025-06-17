@@ -21,5 +21,6 @@ urlpatterns = [
     path('message/', deposit_message,name="deposit-message"),
     path('add-balance/', add_balance,name="add-balance"),
     path('withdrawal-request/', withdrawal_request,name="withdrawal-request"),
+    path('deposited-user/', deposited_user,name="deposited-user")
 ]
 

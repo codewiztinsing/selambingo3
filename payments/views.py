@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from accounts.models import TelegramUser
-from .models import Wallet,Commission,Charge,WinTracker,PaymentSession,DepositMessage
+from .models import Wallet,Commission,Charge,WinTracker,PaymentSession,DepositMessage,DepositedUser
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 import requests
@@ -395,6 +395,7 @@ def deposit(request):
         wallet = Wallet.objects.get(user=telegram_user)
         wallet.balance += existing_deposit.amount
         wallet.save()
+        DepositedUser.objects.create(user=telegram_user, amount=existing_deposit.amount)
         existing_deposit.delete()
         return JsonResponse({'message': 'Deposit successful'})
 
@@ -463,3 +464,16 @@ def withdrawal_request(request):
     wallet.save()
     return JsonResponse({'message': 'Withdrawal request created successfully'})
 
+
+
+@csrf_exempt
+def deposited_user(request):
+    user_id = request.GET.get('user_id',0)
+    telegram_user = TelegramUser.objects.filter(telegram_id=user_id).first()
+    if telegram_user is None:
+        return JsonResponse({'message': 'User not found'}, status=404)
+    deposited_user = DepositedUser.objects.filter(user=telegram_user).first()
+    if deposited_user is None:
+        return JsonResponse({'message': 'Deposited user not found'}, status=404)
+    return JsonResponse({'message': deposited_user.amount}, status=200)
+   

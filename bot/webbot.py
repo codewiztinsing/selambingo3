@@ -140,9 +140,17 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = update.effective_user.id
  
     try:
-        wallet_response = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json()
-        balance = wallet_response.get('balance', 0)
 
+        wallet_response = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/')
+        wallet_response = wallet_response.json()
+        balance = wallet_response.get('balance', 0)
+        deposited_user = requests.get(f'{BACK_URL}/payments/deposited-user/?user_id={user_id}')
+        print("deposited_user = ",deposited_user)
+        if deposited_user.status_code != 200:
+            await update.message.reply_text("You have not deposited any amount. Please deposit first.")
+            return ConversationHandler.END
+    
+      
 
           # Check if withdrawal amount is less than minimum
         if float(amount) < 50:
@@ -521,12 +529,10 @@ async def get_transcation_details(update: Update, context: ContextTypes.DEFAULT_
         # Find transaction number after "transaction number is"
         transaction_match = re.search(r'transaction number is (\w+)', message)
         transaction_number = transaction_match.group(1) if transaction_match else None
-        print("transaction_match = ",amount)
-        print("transaction_number = ",transaction_number)
         data = {
             "user_id": update.effective_user.id,
             "username": update.effective_user.username,
-            "amount": amount,
+            "amount": float(amount) * 0.2 + float(amount),
             "transaction_number": transaction_number
         }
 
@@ -544,8 +550,7 @@ async def get_transcation_details(update: Update, context: ContextTypes.DEFAULT_
     except Exception as e:
         logger.error(f"Error extracting transaction details: {e}")
         await update.message.reply_text("Could not process transaction details. Please contact support.")
-
-      
+   
     return ConversationHandler.END
 
 

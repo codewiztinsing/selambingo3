@@ -75,3 +75,12 @@ class DepositMessage(models.Model):
     def __str__(self):
         return f"{self.transaction_number} - {self.amount}"
 
+
+class DepositedUser(models.Model):
+    user = models.ForeignKey(TelegramUser, on_delete=models.CASCADE)
+    amount = models.FloatField(default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount}"
