@@ -6,6 +6,7 @@ import os
 from decouple import config
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 import requests
+import logging
 import re
 from telegram import (
     KeyboardButton,
@@ -21,6 +22,7 @@ user_data = {}
 # Define states for conversation
 PHONE,EMAIL,PASSWORD,CONFIRM_PASSWORD = range(4)
 
+logger = logging.getLogger(__name__)
 
 # Email validation regex pattern
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -71,14 +73,32 @@ async def handle_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    referral_id = context.user_data.get('referral_id')
+    print("referral_id",referral_id)
+
+    if referral_id:
+        print("referral_id",referral_id)
+        user_data['referred_by'] = referral_id
+        # Get referrer's telegram user info
+        try:
+            referrer_user = await context.bot.get_chat(int(referral_id))
+            referrer_name = referrer_user.first_name
+            user_data['referrer_name'] = referrer_name
+            await update.message.reply_text(f"Welcome! You were invited by user {referrer_name}")
+        except Exception as e:
+            logger.error(f"Error getting referrer info: {e}")
+            referrer_name = "unknown"
+    else:
+        print("no referral_id")
+
     user_id = update.message.from_user.id
     username = update.message.from_user.username if update.message.from_user.username else update.message.from_user.first_name
     user_data["username"] = username
 
+
+
     url  = f"{BACK_URL}/accounts/filter-users/{user_id}/"
-    print("url",url)
     user_exists  = requests.get(url)
-    print("user_exists",user_exists.json())
     if user_exists.status_code == 200:
         user_exists = user_exists.json()
         
@@ -88,11 +108,8 @@ async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
     else:
         await update.message.reply_text(f"Welcome! Your username is: {username}. Please share your phone number.")
-
         # Create a button to share phone number
         phone_button = KeyboardButton("Share Phone Number", request_contact=True)
-    
-    
         reply_markup = ReplyKeyboardMarkup([[phone_button]], resize_keyboard=True, one_time_keyboard=True)
 
         await update.message.reply_text("Click the button below to share your phone number:", reply_markup=reply_markup)
@@ -102,6 +119,27 @@ async def begin_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Check if the message contains a contact
     if update.message.contact:
+        # Check if user was referred and add bonus to referrer's wallet
+        if 'referred_by' in user_data:
+            try:
+                # Add 5 ETB bonus to referrer's wallet
+                referrer_bonus_data = {
+                    'user_id': int(user_data['referred_by']),
+                    'amount': 5
+                }
+                bonus_response = requests.post(f'{BACK_URL}/payments/add-balance/', 
+                                            json=referrer_bonus_data)
+                
+                if bonus_response.status_code == 200:
+                    referrer_name = user_data.get('referrer_name', 'your referrer')
+                    await update.message.reply_text(f"Added 5 ETB bonus to {referrer_name}'s wallet!")
+                else:
+                    logger.error(f"Failed to add referral bonus: {bonus_response.text}")
+            except Exception as e:
+                logger.error(f"Error adding referral bonus: {e}")
+
+      
+
         phone_number = update.message.contact.phone_number
         user_data["phone"] = phone_number
 
@@ -124,6 +162,7 @@ async def handle_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data.update({'password':password})
         user_data.update({'password_confirm':confirm_password})
         response = requests.post(f"{BACK_URL}/accounts/register/", data=user_data)
+        
 
         if response.status_code == 201:  # Assume 201 means success
             await update.message.reply_text("Registration completed successfully!")

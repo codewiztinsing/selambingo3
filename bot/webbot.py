@@ -78,6 +78,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("📞 Contact Support", callback_data='contact_support'),
          InlineKeyboardButton("📚 Instruction", callback_data='instructions')],
     ]
+
+    # https://t.me/SelamBingo_bot?start=1464395537
+    # Extract referral ID from start parameter if present
+    if context.args:
+        referral_id = context.args[0]
+        context.user_data['referral_id'] = referral_id
+        logger.info(f"User started registration with referral ID: {referral_id}")
+
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Welcome to Selam Bingo! Select an option:', reply_markup=reply_markup)
@@ -149,15 +157,12 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         if deposited_user.status_code != 200:
             await update.message.reply_text("You have not deposited any amount. Please deposit first.")
             return ConversationHandler.END
-    
-      
 
-          # Check if withdrawal amount is less than minimum
+        # Check if withdrawal amount is less than minimum
         if float(amount) < 50:
             await update.message.reply_text("Minimum withdrawal amount is 50 ETB. Please enter a higher amount.")
             return WITHDRAW_AMOUNT_CONFIRM
 
-        
         # Check if withdrawal amount exceeds balance
         if float(amount) > float(balance):
             await update.message.reply_text(f"Insufficient funds. Your current balance is {balance} ETB")
@@ -166,13 +171,10 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         else:
             # Store amount in context for later use
             context.user_data['withdraw_amount'] = amount
-            
             await update.message.reply_text(
                 "Please enter your Telebirr number or bank account number where you want to receive the withdrawal:"
             )
             return GET_WITHDRAW_ACCOUNT
-
-        
     except Exception as e:
         logger.error(f"Error checking wallet balance: {e}")
         await update.message.reply_text("Error checking your balance. Please try again later.")
@@ -180,14 +182,6 @@ async def get_withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
   
         
   
-    
-
-   
-
-    
-
-
-
 async def get_withdraw_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
     account_number = update.message.text
     BACK_URL = "https://api.selambingo.com/"
@@ -244,8 +238,6 @@ async def play_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
   
     await update.message.reply_text("Choose a play option:", reply_markup=reply_markup)
 
-
-
 # Function to create the play options keyboard
 def instructions_options_keyboard() -> InlineKeyboardMarkup:
     keyboard = [
@@ -272,18 +264,13 @@ def support_options_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
-
 async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = support_options_keyboard()
     await update.message.reply_text("Contact us using support button. We will respond to your message as soon as possible.", reply_markup=reply_markup)
 
-
-
 async def instruction_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = instructions_options_keyboard()  # Create the inline keyboard
     await update.message.reply_text("Choose a instruction option:", reply_markup=reply_markup)
-
-
 
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -299,7 +286,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             
             # Check if user is registered
             response = requests.get(f'{BACK_URL}/accounts/filter-users/{user_id}/')
-            print("response xxx = ",response)
             if response.status_code != 200:
                 await query.edit_message_text(
                     text="You need to register first before playing. Use the /register command.",
@@ -333,7 +319,6 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 f"https://selambingo.com/?playerId={player_id}&name={username}&betAmount={bet_amount}&wallet_amount={wallet_amount}&demo=true"
             )
 
-            print("web_app_url = ",web_app_url)
             await query.edit_message_text(
                 text=f"Starting demo game...",
                 reply_markup=InlineKeyboardMarkup([[
@@ -610,10 +595,10 @@ async def handle_invite(update: Update, context: ContextTypes.DEFAULT_TYPE):
     wallet_response = requests.get(f'{BACK_URL}/payments/wallet/{user_id}/').json()
     balance = wallet_response.get('balance', 0)
 
-    invite_link = f"https://t.me/empirebingobot?start={user_id}"
+    invite_link = f"https://t.me/SelamBingo_bot?start={user_id}"
     
     message = (
-        f"🎮 Invite your friends to Empire Bingo!\n\n"
+        f"🎮 Invite your friends to Selam Bingo!\n\n"
         f"Share this link with your friends:\n{invite_link}\n\n"
         f"Your current balance: {balance} ETB\n\n"
         f"Invite friends and enjoy playing together! 🎲"
